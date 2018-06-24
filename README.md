@@ -5,9 +5,9 @@ This project relies on OpenSSL for AES-IGE and PBKDF2 implementations. See their
 
 To use, copy the 'tdata' directory (found in "AppData\Roaming\Telegram Desktop" by default) into the working directory or change the location in the [Constants.cs](https://github.com/MihaZupan/TelegramDesktopLocalStorage/blob/master/src/TelegramLocalStorage/Constants.cs) file.
 
-Useful references - Telegram Desktop source code:
+Useful references: [Telegram Desktop source code](https://github.com/telegramdesktop/tdesktop)
 
-Most relevant files:
+Most relevant files (happy digging):
 * [localstorage.cpp](https://github.com/telegramdesktop/tdesktop/blob/dev/Telegram/SourceFiles/storage/localstorage.cpp)
 * [auth_key.cpp](https://github.com/telegramdesktop/tdesktop/blob/dev/Telegram/SourceFiles/mtproto/auth_key.cpp)
 * [auth_key.h](https://github.com/telegramdesktop/tdesktop/blob/dev/Telegram/SourceFiles/mtproto/auth_key.h)
