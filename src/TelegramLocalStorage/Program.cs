@@ -109,6 +109,7 @@ namespace MihaZupan.TelegramLocalStorage
                             {
                                 active[j] = true;
                                 thread = j;
+                                break;
                             }
                         }
                     }
