@@ -16,4 +16,4 @@ Most relevant files (happy digging):
 
 Some estimates:
 * Ryzen 1700	@ 3,7 GHz - 255 tries/s
-* Intel 5820k	@ 3,4 GHz - 155 tries/s
+* Intel 5820k	@ 3,4 GHz - 180 tries/s
