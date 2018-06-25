@@ -20,11 +20,6 @@ namespace MihaZupan.TelegramLocalStorage
             Array.Copy(bytes, 0, copy, 0, copy.Length);
             return copy;
         }
-        public static byte[] Reverse(this byte[] bytes)
-        {
-            Array.Reverse(bytes);
-            return bytes;
-        }
 
         public static bool CompareBytes(byte[] a, byte[] b, int indexA, int indexB, int len)
         {
