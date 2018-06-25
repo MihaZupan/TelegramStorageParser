@@ -13,3 +13,7 @@ Most relevant files (happy digging):
 * [auth_key.h](https://github.com/telegramdesktop/tdesktop/blob/dev/Telegram/SourceFiles/mtproto/auth_key.h)
 
 [MapPasscodeBruteForce.cs](https://github.com/MihaZupan/TelegramDesktopLocalStorage/blob/master/src/TelegramLocalStorage/MapPasscodeBruteForce.cs) coitains a sample implementation for brute forcing a passcode by eliminating as much excess code as possible
+
+Some estimates:
+* Ryzen 1700	@ 3,7 GHz - 255 tries/s
+* Intel 5820k	@ 3,4 GHz - 155 tries/s

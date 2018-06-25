@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MihaZupan.TelegramLocalStorage.TgCrypto;
+using System.Diagnostics;
 
 namespace MihaZupan.TelegramLocalStorage
 {
@@ -49,7 +50,7 @@ namespace MihaZupan.TelegramLocalStorage
         static void TryBruteforceMapPasscode()
         {
             // Prepare some variables
-            int coreCount = Environment.ProcessorCount / 4 * 3;
+            int coreCount = Environment.ProcessorCount - 2;
             bool[] active = new bool[coreCount];
             for (int i = 0; i < coreCount; i++) active[i] = false;
             object threadLock = new object();
@@ -58,9 +59,9 @@ namespace MihaZupan.TelegramLocalStorage
             bool found = false;
             MapPasscodeBruteForce bruteForce = new MapPasscodeBruteForce(coreCount);
 
-            // Testing all 4-character combinations of upper and lowercase English letters
+            // Testing all 4-character combinations of upper and lowercase English letters and numbers
             const int numChars = 4;
-            const int optionsPerChar = 52;
+            const int optionsPerChar = 62;
             int numOptions = (int)Math.Pow(optionsPerChar, numChars);
 
             // Generate all possible passcodes in UTF8 encoded byte arrays
@@ -74,22 +75,36 @@ namespace MihaZupan.TelegramLocalStorage
                     int x = tmpI % optionsPerChar;
 
                     if (x < 26) passcode[j] = (byte)('a' + x);
-                    else passcode[j] = (byte)('A' + x - 26);
+                    else if (x < 52) passcode[j] = (byte)('A' + x - 26);
+                    else passcode[j] = (byte)('0' + x - 52);
 
                     tmpI /= optionsPerChar;
                 }
                 options[i] = passcode;
             }
+            Shuffle(options);
+
+            Console.WriteLine("Number of combinations to test: " + numOptions);
+            Stopwatch stopwatch = new Stopwatch();
 
             // Let us know how we're doing
             Task.Run(() =>
             {
-                while (!found && tested < numOptions)
+                while (true)
                 {
                     Thread.Sleep(5000);
-                    Console.WriteLine("Tested {0} passcodes - {1}%", tested, ((float)tested / numOptions * 100).ToString("0.000"));
+                    if (!found && tested < numOptions)
+                    {
+                        Console.WriteLine("Tested {0} passcodes - {1}% - avg. speed: {2} h/s",
+                            tested,
+                            ((float)tested / numOptions * 100).ToString("0.00"),
+                            (int)((float)tested / stopwatch.ElapsedMilliseconds * 1000));
+                    }
+                    else break;
                 }
             });
+
+            stopwatch.Start();
 
             // Run the tests in parralel
             Parallel.For(0, numOptions, new ParallelOptions() { MaxDegreeOfParallelism = coreCount },
@@ -121,6 +136,22 @@ namespace MihaZupan.TelegramLocalStorage
                     }
                     active[thread] = false;
                 });
+
+            stopwatch.Stop();
+            Console.WriteLine("Total time elapsed: {0} s", stopwatch.ElapsedMilliseconds / 1000);
+            Console.WriteLine("Average speed: {0} hashes/s", (int)((float)tested / stopwatch.ElapsedMilliseconds * 1000));
+        }
+        public static void Shuffle(byte[][] array)
+        {	
+            Random rng = new Random();	
+            int n = array.Length;	
+            while (n > 1)	
+            {	
+                int k = rng.Next(n--);	
+                byte[] temp = array[n];	
+                array[n] = array[k];	
+                array[k] = temp;	
+            }	
         }
 
         // Helper to serialize the object to a file
