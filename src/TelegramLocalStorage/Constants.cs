@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using MihaZupan.TelegramLocalStorage.OpenSSL;
 using MihaZupan.TelegramLocalStorage.Types;
 
 namespace MihaZupan.TelegramLocalStorage
@@ -12,7 +13,7 @@ namespace MihaZupan.TelegramLocalStorage
         public const int LocalEncryptSaltSize = 32;
 
         public const string BasePath = "tdata/";
-        public static readonly FileKey DataNameKey = BitConverter.ToUInt64(Encoding.UTF8.GetBytes("data").Md5(), 0);
+        public static readonly FileKey DataNameKey = BitConverter.ToUInt64(Md5.ComputeHash(Encoding.UTF8.GetBytes("data")), 0);
         public static readonly string UserPath = BasePath + DataNameKey.ToFilePart() + "/";
         public static readonly byte[] TDFMagic = { (byte)'T', (byte)'D', (byte)'F', (byte)'$' };
     }

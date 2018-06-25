@@ -22,7 +22,8 @@ namespace MihaZupan.TelegramLocalStorage.TgCrypto
 
             byte[] decrypted = AesDecryptLocal(encryptedActual, fullLen, key, encryptedKey);
 
-            byte[] sha1 = decrypted.Sha1();
+            byte[] sha1 = new byte[20];
+            SHA.SHA1(decrypted, decrypted.Length, sha1);
             if (!CompareBytes(sha1, encryptedKey, 0, 0, 16))
                 return false;
 

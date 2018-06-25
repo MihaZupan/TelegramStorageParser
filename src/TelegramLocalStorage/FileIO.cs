@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Security.Cryptography;
+using MihaZupan.TelegramLocalStorage.OpenSSL;
 using MihaZupan.TelegramLocalStorage.TgCrypto;
 using static MihaZupan.TelegramLocalStorage.Extensions;
 
@@ -26,24 +26,20 @@ namespace MihaZupan.TelegramLocalStorage
             if (!CompareBytes(bytes, Constants.TDFMagic, 0, 0, Constants.TDFMagic.Length))
                 throw new Exception("bad magic");
             index += Constants.TDFMagic.Length;
-
-            // Dunno if it should be reversed first - doesn't matter anyway
+            
             int version = BitConverter.ToInt32(bytes, index);
             index += sizeof(int);
 
             byte[] data = new byte[bytes.Length - index - 16];
             Array.Copy(bytes, index, data, 0, data.Length);
 
-            using (MD5 md5 = MD5.Create())
-            {
-                md5.TransformBlock(data);
-                md5.TransformBlock(BitConverter.GetBytes(data.Length));
-                md5.TransformBlock(BitConverter.GetBytes(version));
-                md5.TransformFinalBlock(Constants.TDFMagic);
-
-                if (!CompareBytes(bytes, md5.Hash, bytes.Length - 16, 0, 16))
-                    throw new Exception("invalid md5 hash");
-            }
+            Md5 md5 = new Md5();
+            md5.Update(data);
+            md5.Update(BitConverter.GetBytes(data.Length));
+            md5.Update(BitConverter.GetBytes(version));
+            md5.Update(Constants.TDFMagic);
+            if (!CompareBytes(bytes, md5.Finalize(), bytes.Length - 16, 0, 16))
+                throw new Exception("invalid md5 hash");
 
             return new DataStream(data);
         }

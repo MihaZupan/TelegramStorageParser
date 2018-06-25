@@ -6,11 +6,12 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{3D5504AD-6427-4093-A0A7-45E2FDF2AA72}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TelegramLocalStorage</RootNamespace>
+    <RootNamespace>MihaZupan.TelegramLocalStorage</RootNamespace>
     <AssemblyName>TelegramLocalStorage</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -21,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -30,6 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -46,6 +49,8 @@
     <Compile Include="Map.cs" />
     <Compile Include="MapPasscodeBruteForce.cs" />
     <Compile Include="OpenSSL\KDF.cs" />
+    <Compile Include="OpenSSL\SHA.cs" />
+    <Compile Include="OpenSSL\MD5.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="TgCrypto\AuthKey.cs" />
     <Compile Include="Extensions.cs" />

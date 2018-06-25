@@ -1,33 +1,10 @@
 ﻿using System;
-using System.Security.Cryptography;
 using MihaZupan.TelegramLocalStorage.Types;
 
 namespace MihaZupan.TelegramLocalStorage
 {
     internal static class Extensions
     {
-        public static int TransformBlock(this MD5 md5, byte[] bytes)
-        {
-            return md5.TransformBlock(bytes, 0, bytes.Length, bytes, 0);
-        }
-        public static byte[] TransformFinalBlock(this MD5 md5, byte[] bytes)
-        {
-            return md5.TransformFinalBlock(bytes, 0, bytes.Length);
-        }
-        public static byte[] Md5(this byte[] bytes)
-        {
-            using (MD5 md5 = MD5.Create())
-            {
-                return md5.ComputeHash(bytes);
-            }
-        }
-        public static byte[] Sha1(this byte[] bytes)
-        {
-            using (SHA1 sha1 = SHA1.Create())
-            {
-                return sha1.ComputeHash(bytes);
-            }
-        }
         public static bool IsSameAs(this byte[] a, byte[] b)
         {
             if (a.Length != b.Length) return false;
@@ -67,18 +44,6 @@ namespace MihaZupan.TelegramLocalStorage
                 val >>= 4;
             }
             return new string(result);
-        }
-        public static void Shuffle(this byte[][] array)
-        {
-            Random rng = new Random();
-            int n = array.Length;
-            while (n > 1)
-            {
-                int k = rng.Next(n--);
-                byte[] temp = array[n];
-                array[n] = array[k];
-                array[k] = temp;
-            }
         }
     }
 }

@@ -12,8 +12,6 @@ namespace MihaZupan.TelegramLocalStorage
     {
         static void Main(string[] args)
         {
-            // This will assume the 'tdata' directory is in the working directory - change it in Constants.cs otherwise
-
             if (Settings.TryParseSettings(out Settings settings))
             {
                 WriteJson("settings.json", settings);
@@ -113,7 +111,6 @@ namespace MihaZupan.TelegramLocalStorage
                             }
                         }
                     }
-
                     // Try that password
                     if (bruteForce.Try(options[i], thread))
                     {
