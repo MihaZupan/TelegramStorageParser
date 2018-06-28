@@ -17,7 +17,7 @@ namespace MihaZupan.TelegramLocalStorage
         {
             settings = null;
 
-            DataStream file = FileIO.ReadFile("settings", FileOptions.Safe);
+            DataStream file = FileIO.ReadFile("settings", FilePath.Base);
             byte[] salt = file.ReadByteArray();
             if (salt.Length != Constants.LocalEncryptSaltSize) return false;
             byte[] settingsEncrypted = file.ReadByteArray();
@@ -33,7 +33,7 @@ namespace MihaZupan.TelegramLocalStorage
             DataStream file;
             try
             {
-                file = FileIO.ReadEncryptedFile(fileKey.ToFilePart(), FileOptions.Safe, key);
+                file = FileIO.ReadEncryptedFile(fileKey.ToFilePart(), FilePath.Base, key);
             }
             catch
             {

@@ -10,6 +10,6 @@ namespace MihaZupan.TelegramLocalStorage.OpenSSL
         }
 
         [DllImport("libcrypto.dll", CallingConvention = CallingConvention.Cdecl)]
-        private extern static int PKCS5_PBKDF2_HMAC_SHA1(byte[] pass, int passlen, byte[] salt, int saltlen, int iter, int keylen, byte[] @out);
+        public extern static int PKCS5_PBKDF2_HMAC_SHA1(byte[] pass, int passlen, byte[] salt, int saltlen, int iter, int keylen, byte[] @out);
     }
 }

@@ -4,8 +4,10 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MihaZupan.TelegramLocalStorage.TgCrypto;
 using System.Diagnostics;
+using System.Collections.Generic;
+using MihaZupan.TelegramLocalStorage.TgCrypto;
+using MihaZupan.TelegramLocalStorage.Types;
 
 namespace MihaZupan.TelegramLocalStorage
 {
@@ -26,6 +28,9 @@ namespace MihaZupan.TelegramLocalStorage
             {
                 WriteJson("map.json", map);
 
+                //SaveAllImages(map.ImagesMap, localKey);
+                //SaveAllAudios(map.AudiosMap, localKey);
+                
                 // Only try parsing MtpData if parsing the map was successful since we need the same key
                 if (Settings.TryReadMtpData(Constants.DataNameKey, localKey, out Settings mtpData))
                 {
@@ -40,7 +45,7 @@ namespace MihaZupan.TelegramLocalStorage
             {
                 Console.WriteLine("Failed to parse map");
             }
-            
+
             TryBruteforceMapPasscode();
 
             Console.WriteLine("Done");
@@ -50,7 +55,7 @@ namespace MihaZupan.TelegramLocalStorage
         static void TryBruteforceMapPasscode()
         {
             // Prepare some variables
-            int coreCount = Environment.ProcessorCount - 2;
+            int coreCount = Environment.ProcessorCount - 1;
             bool[] active = new bool[coreCount];
             for (int i = 0; i < coreCount; i++) active[i] = false;
             object threadLock = new object();
@@ -63,26 +68,8 @@ namespace MihaZupan.TelegramLocalStorage
             const int numChars = 4;
             const int optionsPerChar = 62;
             int numOptions = (int)Math.Pow(optionsPerChar, numChars);
-
-            // Generate all possible passcodes in UTF8 encoded byte arrays
-            byte[][] options = new byte[numOptions][];
-            for (int i = 0; i < numOptions; i++)
-            {
-                byte[] passcode = new byte[numChars];
-                int tmpI = i;
-                for (int j = 0; j < numChars; j++)
-                {
-                    int x = tmpI % optionsPerChar;
-
-                    if (x < 26) passcode[j] = (byte)('a' + x);
-                    else if (x < 52) passcode[j] = (byte)('A' + x - 26);
-                    else passcode[j] = (byte)('0' + x - 52);
-
-                    tmpI /= optionsPerChar;
-                }
-                options[i] = passcode;
-            }
-            Shuffle(options);
+            byte[][] passcodeBuffers = new byte[coreCount][];
+            for (int i = 0; i < coreCount; i++) passcodeBuffers[i] = new byte[numChars];
 
             Console.WriteLine("Number of combinations to test: " + numOptions);
             Stopwatch stopwatch = new Stopwatch();
@@ -126,11 +113,26 @@ namespace MihaZupan.TelegramLocalStorage
                             }
                         }
                     }
-                    // Try that password
-                    if (bruteForce.Try(options[i], thread))
+
+                    // Derive the passcode from i
+                    byte[] passcode = passcodeBuffers[thread];
+                    int tmpI = i;
+                    for (int j = 0; j < numChars; j++)
+                    {
+                        int x = tmpI % optionsPerChar;
+
+                        if (x < 26) passcode[j] = (byte)('a' + x);
+                        else if (x < 52) passcode[j] = (byte)('A' + x - 26);
+                        else passcode[j] = (byte)('0' + x - 52);
+
+                        tmpI /= optionsPerChar;
+                    }
+
+                    // Try that passcode
+                    if (bruteForce.Try(passcode, thread))
                     {
                         found = true;
-                        correctPasscode = Encoding.UTF8.GetString(options[i]);
+                        correctPasscode = Encoding.UTF8.GetString(passcode);
                         File.WriteAllText("passcode.txt", correctPasscode);
                         Console.WriteLine("Correct passcode: " + correctPasscode);
                     }
@@ -159,5 +161,36 @@ namespace MihaZupan.TelegramLocalStorage
         {
             File.WriteAllText(fileName, JsonConvert.SerializeObject(obj, Formatting.Indented));
         }        
+
+        static void SaveAllImages(Dictionary<StorageKey, FileDesc> imagesMap, AuthKey localKey)
+        {
+            Directory.CreateDirectory("images");
+            int imageCount = 0;
+            foreach (var imageFile in imagesMap.Values)
+            {
+                if (FileIO.FileExists(imageFile, FilePath.User))
+                {
+                    var image = FileIO.ReadEncryptedFile(imageFile, FilePath.User, localKey);
+                    image.SeekForward(20);
+                    byte[] data = image.ReadByteArray();
+                    File.WriteAllBytes("images\\" + ++imageCount + ".jpg", data);
+                }
+            }
+        }
+        static void SaveAllAudios(Dictionary<StorageKey, FileDesc> audiosMap, AuthKey localKey)
+        {
+            Directory.CreateDirectory("audio");
+            int audioCount = 0;
+            foreach (var audioFile in audiosMap.Values)
+            {
+                if (FileIO.FileExists(audioFile, FilePath.User))
+                {
+                    var audio = FileIO.ReadEncryptedFile(audioFile, FilePath.User, localKey);
+                    audio.SeekForward(16);
+                    byte[] data = audio.ReadByteArray();
+                    File.WriteAllBytes("audio\\" + ++audioCount + ".ogg", data);
+                }
+            }
+        }
     }         
 }

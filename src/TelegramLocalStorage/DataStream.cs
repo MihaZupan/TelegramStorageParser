@@ -22,6 +22,11 @@ namespace MihaZupan.TelegramLocalStorage
 
         public bool AtEnd => _data.Length <= _offset;
 
+        public void SeekForward(int count)
+        {
+            _offset += count;
+        }
+
         public byte[] ReadRawData(int length)
         {
             if (length <= 0) return new byte[0];
@@ -97,47 +102,47 @@ namespace MihaZupan.TelegramLocalStorage
             return BitConverter.ToInt64(intBytes, 0);
         }
 
-        public List<PeerId> ReadPeerIds()
+        public PeerId[] ReadPeerIds()
         {
             uint n = ReadUInt32();
-            List<PeerId> ret = new List<PeerId>((int)n);
+            PeerId[] ret = new PeerId[(int)n];
             for (int i = 0; i < n; i++)
             {
-                ret.Add(ReadUInt64());
+                ret[i] = ReadUInt64();
             }
             return ret;
         }
-        public List<Tuple<uint, ushort>> ReadRecentEmojiPreloadOldOld()
+        public Tuple<uint, ushort>[] ReadRecentEmojiPreloadOldOld()
         {
             uint n = ReadUInt32();
-            List<Tuple<uint, ushort>> ret = new List<Tuple<uint, ushort>>((int)n);
+            Tuple<uint, ushort>[] ret = new Tuple<uint, ushort>[(int)n];
             for (int i = 0; i < n; i++)
             {
-                ret.Add(new Tuple<uint, ushort>(ReadUInt32(), ReadUInt16()));
+                ret[i] = new Tuple<uint, ushort>(ReadUInt32(), ReadUInt16());
             }
             return ret;
         }
-        public List<Tuple<ulong, ushort>> ReadRecentEmojiPreloadOld()
+        public Tuple<ulong, ushort>[] ReadRecentEmojiPreloadOld()
         {
             uint n = ReadUInt32();
-            List<Tuple<ulong, ushort>> ret = new List<Tuple<ulong, ushort>>((int)n);
+            Tuple<ulong, ushort>[] ret = new Tuple<ulong, ushort>[(int)n];
             for (int i = 0; i < n; i++)
             {
-                ret.Add(new Tuple<ulong, ushort>(ReadUInt64(), ReadUInt16()));
+                ret[i]= new Tuple<ulong, ushort>(ReadUInt64(), ReadUInt16());
             }
             return ret;
         }
-        public List<Tuple<string, ushort>> ReadRecentEmojiPreload()
+        public Tuple<string, ushort>[] ReadRecentEmojiPreload()
         {
             uint n = ReadUInt32();
-            List<Tuple<string, ushort>> ret = new List<Tuple<string, ushort>>((int)n);
+            Tuple<string, ushort>[] ret = new Tuple<string, ushort>[(int)n];
             for (int i = 0; i < n; i++)
             {
-                ret.Add(new Tuple<string, ushort>(ReadString(), ReadUInt16()));
+                ret[i] = new Tuple<string, ushort>(ReadString(), ReadUInt16());
             }
             return ret;
         }
-        public List<Tuple<ulong, ushort>> ReadRecentStickerPreload()
+        public Tuple<ulong, ushort>[] ReadRecentStickerPreload()
         {
             // Happens to be the same type
             return ReadRecentEmojiPreloadOld();

@@ -5,6 +5,8 @@ namespace MihaZupan.TelegramLocalStorage
 {
     class MapPasscodeBruteForce
     {
+        private const int NeededAuthKeySize = 136;
+
         private class SessionBuffers
         {
             public SessionBuffers(int encryptedDataLength, byte[] messageKey)
@@ -16,7 +18,7 @@ namespace MihaZupan.TelegramLocalStorage
                 Array.Copy(messageKey, 0, Data_D, 0, 16);
             }
 
-            public byte[] AuthKey = new byte[Constants.AuthKeySize];
+            public byte[] AuthKey = new byte[NeededAuthKeySize];            
             public byte[] AesKey = new byte[32];
             public byte[] AesIV = new byte[32];
             public byte[] DecKey = new byte[AesCore.AesKeyStructSize];
@@ -46,7 +48,7 @@ namespace MihaZupan.TelegramLocalStorage
         // Try to reuse byte arrays where possible
         public MapPasscodeBruteForce(int maxThreads)
         {
-            DataStream stream = FileIO.ReadFile("map", FileOptions.User);
+            DataStream stream = FileIO.ReadFile("map", FilePath.User);
             Salt = stream.ReadByteArray();
             byte[] keyEncryptedData = stream.ReadByteArray();
 
@@ -64,9 +66,9 @@ namespace MihaZupan.TelegramLocalStorage
         public bool Try(byte[] passcodeUtf8, int thread)
         {
             SessionBuffers session = Sessions[thread];
-            
+
             KDF.PKCS5_PBKDF2_HMAC_SHA1(passcodeUtf8, Salt, Constants.LocalEncryptIterCount, session.AuthKey);
-            
+
             Array.Copy(session.AuthKey, 8, session.Data_A, 16, 32);
             Array.Copy(session.AuthKey, 40, session.Data_B, 0, 16);
             Array.Copy(session.AuthKey, 56, session.Data_B, 32, 16);

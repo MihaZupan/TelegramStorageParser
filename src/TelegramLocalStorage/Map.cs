@@ -16,20 +16,20 @@ namespace MihaZupan.TelegramLocalStorage
         public long StorageImagesSize = 0;
         public long StorageStickersSize = 0;
         public long StorageAudiosSize = 0;
-        public ulong LocationsKey = 0;
-        public ulong ReportSpamStatusesKey = 0;
-        public ulong TrustedBotsKey = 0;
-        public ulong RecentStickersKeyOld = 0;
-        public ulong InstalledStickersKey = 0;
-        public ulong FeaturedStickersKey = 0;
-        public ulong RecentStickersKey = 0;
-        public ulong FavedStickersKey = 0;
-        public ulong ArchivedStickersKey = 0;
-        public ulong SavedGifsKey = 0;
-        public ulong BackgroundKey = 0;
-        public ulong UserSettingsKey = 0;
-        public ulong RecentHashtagsAndBotsKey = 0;
-        public ulong SavedPeersKey = 0;
+        public FileKey LocationsKey = 0;
+        public FileKey ReportSpamStatusesKey = 0;
+        public FileKey TrustedBotsKey = 0;
+        public FileKey RecentStickersKeyOld = 0;
+        public FileKey InstalledStickersKey = 0;
+        public FileKey FeaturedStickersKey = 0;
+        public FileKey RecentStickersKey = 0;
+        public FileKey FavedStickersKey = 0;
+        public FileKey ArchivedStickersKey = 0;
+        public FileKey SavedGifsKey = 0;
+        public FileKey BackgroundKey = 0;
+        public FileKey UserSettingsKey = 0;
+        public FileKey RecentHashtagsAndBotsKey = 0;
+        public FileKey SavedPeersKey = 0;
 
         private Map()
         {
@@ -46,7 +46,7 @@ namespace MihaZupan.TelegramLocalStorage
             map = null;
             localKey = null;
 
-            DataStream stream = FileIO.ReadFile("map", FileOptions.User);
+            DataStream stream = FileIO.ReadFile("map", FilePath.User);
             byte[] salt = stream.ReadByteArray();
             byte[] keyEncrypted = stream.ReadByteArray();
             byte[] mapEncrypted = stream.ReadByteArray();

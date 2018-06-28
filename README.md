@@ -19,8 +19,7 @@ Most relevant files (happy digging):
 [MapPasscodeBruteForce.cs](https://github.com/MihaZupan/TelegramDesktopLocalStorage/blob/master/src/TelegramLocalStorage/MapPasscodeBruteForce.cs) coitains a sample implementation for brute forcing a passcode by eliminating as much excess code as possible
 
 Some estimates:
-* Ryzen 1700	@ 3,7 GHz - 255 tries/s
-* Intel 5820k	@ 3,4 GHz - 180 tries/s
+* Ryzen 1700	@ 3,7 GHz - 450 tries/s
 
 
 A gpu based cracker is [in the works](https://github.com/magnumripper/JohnTheRipper/issues/3280) thanks to [@kholia](https://github.com/kholia)
