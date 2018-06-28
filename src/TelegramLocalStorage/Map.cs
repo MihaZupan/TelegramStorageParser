@@ -4,32 +4,32 @@ using MihaZupan.TelegramLocalStorage.Types;
 
 namespace MihaZupan.TelegramLocalStorage
 {
-    public class Map
+    internal class Map
     {
-        public Dictionary<PeerId, FileKey> DraftsMap;        
-        public Dictionary<PeerId, FileKey> DraftCursorsMap;        
-        public Dictionary<PeerId, bool> DraftsNotReadMap;        
-        public Dictionary<StorageKey, FileDesc> ImagesMap;        
-        public Dictionary<StorageKey, FileDesc> StickerImagesMap;        
+        public Dictionary<PeerId, FileKey> DraftsMap;
+        public Dictionary<PeerId, FileKey> DraftCursorsMap;
+        public Dictionary<PeerId, bool> DraftsNotReadMap;
+        public Dictionary<StorageKey, FileDesc> ImagesMap;
+        public Dictionary<StorageKey, FileDesc> StickerImagesMap;
         public Dictionary<StorageKey, FileDesc> AudiosMap;
 
         public long StorageImagesSize = 0;
         public long StorageStickersSize = 0;
         public long StorageAudiosSize = 0;
-        public FileKey LocationsKey = 0;
-        public FileKey ReportSpamStatusesKey = 0;
-        public FileKey TrustedBotsKey = 0;
-        public FileKey RecentStickersKeyOld = 0;
-        public FileKey InstalledStickersKey = 0;
-        public FileKey FeaturedStickersKey = 0;
-        public FileKey RecentStickersKey = 0;
-        public FileKey FavedStickersKey = 0;
-        public FileKey ArchivedStickersKey = 0;
-        public FileKey SavedGifsKey = 0;
-        public FileKey BackgroundKey = 0;
-        public FileKey UserSettingsKey = 0;
-        public FileKey RecentHashtagsAndBotsKey = 0;
-        public FileKey SavedPeersKey = 0;
+        public FileKey LocationsKey = null;
+        public FileKey ReportSpamStatusesKey = null;
+        public FileKey TrustedBotsKey = null;
+        public FileKey RecentStickersKeyOld = null;
+        public FileKey InstalledStickersKey = null;
+        public FileKey FeaturedStickersKey = null;
+        public FileKey RecentStickersKey = null;
+        public FileKey FavedStickersKey = null;
+        public FileKey ArchivedStickersKey = null;
+        public FileKey SavedGifsKey = null;
+        public FileKey BackgroundKey = null;
+        public FileKey UserSettingsKey = null;
+        public FileKey RecentHashtagsAndBotsKey = null;
+        public FileKey SavedPeersKey = null;
 
         private Map()
         {
@@ -41,29 +41,31 @@ namespace MihaZupan.TelegramLocalStorage
             AudiosMap = new Dictionary<StorageKey, FileDesc>();
         }
 
-        public static bool TryParseMap(byte[] password, out Map map, out AuthKey localKey)
+        public static ParsingState TryParseMap(FileIO fileIO, byte[] password, out Map map, out AuthKey localKey)
         {
             map = null;
             localKey = null;
 
-            DataStream stream = FileIO.ReadFile("map", FilePath.User);
+            if (!fileIO.FileExists("map", FilePath.User)) return ParsingState.FileNotFound;
+
+            DataStream stream = fileIO.ReadFile("map", FilePath.User);
             byte[] salt = stream.ReadByteArray();
             byte[] keyEncrypted = stream.ReadByteArray();
             byte[] mapEncrypted = stream.ReadByteArray();
-            if (salt.Length != Constants.LocalEncryptSaltSize) return false;
+            if (salt.Length != Constants.LocalEncryptSaltSize) return ParsingState.InvalidData;
 
             AuthKey passKey = AuthKey.CreateLocalKey(password, salt);
             bool result = Decrypt.TryDecryptLocal(keyEncrypted, passKey, out byte[] keyData);
-            if (!result) return false;
+            if (!result) return ParsingState.InvalidPasscode;
 
             localKey = new AuthKey(keyData);
             result = Decrypt.TryDecryptLocal(mapEncrypted, localKey, out byte[] mapData);
-            if (!result) return false;
+            if (!result) return ParsingState.InvalidData;
 
             return TryParse(new DataStream(mapData), out map);
         }
 
-        private static bool TryParse(DataStream stream, out Map map)
+        private static ParsingState TryParse(DataStream stream, out Map map)
         {
             map = new Map();
 
@@ -71,10 +73,10 @@ namespace MihaZupan.TelegramLocalStorage
             {
                 uint storageKey = stream.ReadUInt32();
                 if (!map.ReadKey((LocalStorageKeys)storageKey, stream))
-                    return false;
+                    return ParsingState.InvalidData;
             }
 
-            return true;
+            return ParsingState.Success;
         }
         private bool ReadKey(LocalStorageKeys storageKey, DataStream stream)
         {
@@ -96,19 +98,22 @@ namespace MihaZupan.TelegramLocalStorage
 
                 case LocalStorageKeys.lskImages:
                     {
-                        ImagesMap = stream.ReadStorageMap(out StorageImagesSize);
+                        ImagesMap = stream.ReadStorageMap(out long storageImagesSize);
+                        StorageImagesSize = storageImagesSize;
                     }
                     break;
 
                 case LocalStorageKeys.lskStickerImages:
                     {
-                        StickerImagesMap = stream.ReadStorageMap(out StorageStickersSize);
+                        StickerImagesMap = stream.ReadStorageMap(out long storageStickersSize);
+                        StorageStickersSize = storageStickersSize;
                     }
                     break;
 
                 case LocalStorageKeys.lskAudios:
                     {
-                        AudiosMap = stream.ReadStorageMap(out StorageAudiosSize);
+                        AudiosMap = stream.ReadStorageMap(out long storageAudiosSize);
+                        StorageAudiosSize = storageAudiosSize;
                     }
                     break;
 

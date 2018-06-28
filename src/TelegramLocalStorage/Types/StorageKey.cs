@@ -2,7 +2,7 @@
 {
     public class StorageKey
     {
-        public StorageKey(ulong first, ulong second)
+        internal StorageKey(ulong first, ulong second)
         {
             First = first;
             Second = second;

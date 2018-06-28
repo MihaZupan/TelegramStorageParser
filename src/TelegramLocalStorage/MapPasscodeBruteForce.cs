@@ -1,12 +1,11 @@
 ﻿using System;
+using System.IO;
 using MihaZupan.TelegramLocalStorage.OpenSSL;
 
 namespace MihaZupan.TelegramLocalStorage
 {
-    class MapPasscodeBruteForce
+    public class MapPasscodeBruteForce
     {
-        private const int NeededAuthKeySize = 136;
-
         private class SessionBuffers
         {
             public SessionBuffers(int encryptedDataLength, byte[] messageKey)
@@ -18,7 +17,7 @@ namespace MihaZupan.TelegramLocalStorage
                 Array.Copy(messageKey, 0, Data_D, 0, 16);
             }
 
-            public byte[] AuthKey = new byte[NeededAuthKeySize];            
+            public byte[] AuthKey = new byte[Constants.NeededAuthKeySize];            
             public byte[] AesKey = new byte[32];
             public byte[] AesIV = new byte[32];
             public byte[] DecKey = new byte[AesCore.AesKeyStructSize];
@@ -46,9 +45,13 @@ namespace MihaZupan.TelegramLocalStorage
 
         // Prepare as many things as we can ahead-of-time once
         // Try to reuse byte arrays where possible
-        public MapPasscodeBruteForce(int maxThreads)
+        public MapPasscodeBruteForce(string tDataPath, int maxThreads)
         {
-            DataStream stream = FileIO.ReadFile("map", FilePath.User);
+            if (!Directory.Exists(tDataPath)) throw new DirectoryNotFoundException("Could not find the tdata directory");
+            FileIO fileIO = new FileIO(tDataPath);
+            if (!fileIO.FileExists("map", FilePath.User)) throw new FileNotFoundException("Could not find the map file");
+
+            DataStream stream = fileIO.ReadFile("map", FilePath.User);
             Salt = stream.ReadByteArray();
             byte[] keyEncryptedData = stream.ReadByteArray();
 

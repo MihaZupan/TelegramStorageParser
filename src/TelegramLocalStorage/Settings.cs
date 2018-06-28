@@ -4,66 +4,72 @@ using MihaZupan.TelegramLocalStorage.Types;
 
 namespace MihaZupan.TelegramLocalStorage
 {
-    public class Settings
+    internal class Settings
     {
-        public Dictionary<DataBlockIDs, Dictionary<string, object>> SettingsMap;
+        public Dictionary<BlockIDs, Dictionary<string, object>> SettingsMap { get; private set; }
 
         private Settings()
         {
-            SettingsMap = new Dictionary<DataBlockIDs, Dictionary<string, object>>();
+            SettingsMap = new Dictionary<BlockIDs, Dictionary<string, object>>();
         }
-        
-        public static bool TryParseSettings(out Settings settings)
+
+        public static ParsingState TryParseSettings(FileIO fileIO, out Settings settings)
         {
             settings = null;
 
-            DataStream file = FileIO.ReadFile("settings", FilePath.Base);
+            if (!fileIO.FileExists("settings", FilePath.Base)) return ParsingState.FileNotFound;
+
+            DataStream file = fileIO.ReadFile("settings", FilePath.Base);
             byte[] salt = file.ReadByteArray();
-            if (salt.Length != Constants.LocalEncryptSaltSize) return false;
+            if (salt.Length != Constants.LocalEncryptSaltSize) return ParsingState.InvalidData;
             byte[] settingsEncrypted = file.ReadByteArray();
 
             AuthKey settingsKey = AuthKey.CreateLocalKey(null, salt);
             bool result = Decrypt.TryDecryptLocal(settingsEncrypted, settingsKey, out byte[] settingsData);
-            if (!result) return false;
+            if (!result) return ParsingState.InvalidData;
 
             return TryParse(new DataStream(settingsData), out settings);
         }
-        public static bool TryReadMtpData(FileKey fileKey, AuthKey key, out Settings mtpData)
-        {            
+        public static ParsingState TryReadMtpData(FileIO fileIO, FileKey fileKey, AuthKey key, out Settings mtpData)
+        {
+            mtpData = null;
+
+            if (!fileIO.FileExists(fileKey, FilePath.Base)) return ParsingState.FileNotFound;
+
             DataStream file;
             try
             {
-                file = FileIO.ReadEncryptedFile(fileKey.ToFilePart(), FilePath.Base, key);
+                file = fileIO.ReadEncryptedFile(fileKey.ToFilePart(), FilePath.Base, key);
             }
             catch
             {
                 mtpData = null;
-                return false;
+                return ParsingState.InvalidData;
             }
             return TryParse(file, out mtpData);
         }
 
-        private static bool TryParse(DataStream stream, out Settings settings)
+        private static ParsingState TryParse(DataStream stream, out Settings settings)
         {
             settings = new Settings();
 
             while (!stream.AtEnd)
             {
                 uint blockId = stream.ReadUInt32();
-                if (!settings.ReadSetting((DataBlockIDs)blockId, stream))
-                    return false;
+                if (!settings.ReadSetting((BlockIDs)blockId, stream))
+                    return ParsingState.InvalidData;
             }
 
-            return true;
+            return ParsingState.Success;
         }
 
         // Not thoroughly tested since I don't have enough test data
-        private bool ReadSetting(DataBlockIDs blockId, DataStream stream)
+        private bool ReadSetting(BlockIDs blockId, DataStream stream)
         {
             Dictionary<string, object> values = new Dictionary<string, object>();
             switch (blockId)
             {
-                case DataBlockIDs.dbiDcOptionOldOld:
+                case BlockIDs.dbiDcOptionOldOld:
                     {
                         values.Add("dcId", stream.ReadUInt32());
                         values.Add("port", stream.ReadUInt32());
@@ -72,7 +78,7 @@ namespace MihaZupan.TelegramLocalStorage
                     }
                     break;
 
-                case DataBlockIDs.dbiDcOptionOld:
+                case BlockIDs.dbiDcOptionOld:
                     {
                         values.Add("dcIdWithShift", stream.ReadUInt32());
                         values.Add("flags", stream.ReadInt32());
@@ -81,93 +87,93 @@ namespace MihaZupan.TelegramLocalStorage
                     }
                     break;
 
-                case DataBlockIDs.dbiDcOptions:
+                case BlockIDs.dbiDcOptions:
                     {
                         values.Add("serialized", stream.ReadByteArray());
                     }
                     break;
 
-                case DataBlockIDs.dbiChatSizeMax:
+                case BlockIDs.dbiChatSizeMax:
                     {
                         values.Add("maxSize", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiSavedGifsLimit:
+                case BlockIDs.dbiSavedGifsLimit:
                     {
                         values.Add("limit", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiStickersRecentLimit:
+                case BlockIDs.dbiStickersRecentLimit:
                     {
                         values.Add("limit", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiStickersFavedLimit:
+                case BlockIDs.dbiStickersFavedLimit:
                     {
                         values.Add("limit", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiMegagroupSizeMax:
+                case BlockIDs.dbiMegagroupSizeMax:
                     {
                         values.Add("maxSize", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiUser:
+                case BlockIDs.dbiUser:
                     {
                         values.Add("dcId", stream.ReadUInt32());
                         values.Add("userId", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiKey:
+                case BlockIDs.dbiKey:
                     {
                         values.Add("dcId", stream.ReadInt32());
                         values.Add("key", stream.ReadRawData(Constants.AuthKeySize));
                     }
                     break;
 
-                case DataBlockIDs.dbiMtpAuthorization:
+                case BlockIDs.dbiMtpAuthorization:
                     {
                         values.Add("serialized", stream.ReadByteArray());
                     }
                     break;
 
-                case DataBlockIDs.dbiAutoStart:
+                case BlockIDs.dbiAutoStart:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiStartMinimized:
+                case BlockIDs.dbiStartMinimized:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiSendToMenu:
+                case BlockIDs.dbiSendToMenu:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiUseExternalVideoPlayer:
+                case BlockIDs.dbiUseExternalVideoPlayer:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiSoundNotify:
+                case BlockIDs.dbiSoundNotify:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiAutoDownload:
+                case BlockIDs.dbiAutoDownload:
                     {
                         values.Add("photo", stream.ReadInt32());
                         values.Add("audio", stream.ReadInt32());
@@ -175,92 +181,92 @@ namespace MihaZupan.TelegramLocalStorage
                     }
                     break;
 
-                case DataBlockIDs.dbiAutoPlay:
+                case BlockIDs.dbiAutoPlay:
                     {
                         values.Add("gif", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiDialogsMode:
+                case BlockIDs.dbiDialogsMode:
                     {
                         values.Add("enabled", stream.ReadInt32());
                         values.Add("modeInt", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiModerateMode:
+                case BlockIDs.dbiModerateMode:
                     {
                         values.Add("enabled", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiIncludeMuted:
+                case BlockIDs.dbiIncludeMuted:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiShowingSavedGifsOld:
+                case BlockIDs.dbiShowingSavedGifsOld:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiDesktopNotify:
+                case BlockIDs.dbiDesktopNotify:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiWindowsNotificationsOld:
+                case BlockIDs.dbiWindowsNotificationsOld:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiNativeNotifications:
+                case BlockIDs.dbiNativeNotifications:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiNotificationsCount:
+                case BlockIDs.dbiNotificationsCount:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiNotificationsCorner:
+                case BlockIDs.dbiNotificationsCorner:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiDialogsWidthRatioOld:
+                case BlockIDs.dbiDialogsWidthRatioOld:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiLastSeenWarningSeenOld:
+                case BlockIDs.dbiLastSeenWarningSeenOld:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiAuthSessionSettings:
+                case BlockIDs.dbiAuthSessionSettings:
                     {
                         values.Add("v", stream.ReadByteArray());
                     }
                     break;
 
-                case DataBlockIDs.dbiWorkMode:
+                case BlockIDs.dbiWorkMode:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiConnectionTypeOld:
+                case BlockIDs.dbiConnectionTypeOld:
                     {
                         Dictionary<string, object> proxy = new Dictionary<string, object>(5)
                         {
@@ -274,7 +280,7 @@ namespace MihaZupan.TelegramLocalStorage
                     }
                     break;
 
-                case DataBlockIDs.dbiConnectionType:
+                case BlockIDs.dbiConnectionType:
                     {
                         int connectionType = stream.ReadInt32();
                         values.Add("connectionType", connectionType);
@@ -303,61 +309,61 @@ namespace MihaZupan.TelegramLocalStorage
                     }
                     break;
 
-                case DataBlockIDs.dbiThemeKey:
+                case BlockIDs.dbiThemeKey:
                     {
                         values.Add("themeKey", stream.ReadUInt64());
                     }
                     break;
 
-                case DataBlockIDs.dbiLangPackKey:
+                case BlockIDs.dbiLangPackKey:
                     {
                         values.Add("langPackKey", stream.ReadUInt64());
                     }
                     break;
 
-                case DataBlockIDs.dbiTryIPv6:
+                case BlockIDs.dbiTryIPv6:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiSeenTrayTooltip:
+                case BlockIDs.dbiSeenTrayTooltip:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiAutoUpdate:
+                case BlockIDs.dbiAutoUpdate:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiLastUpdateCheck:
+                case BlockIDs.dbiLastUpdateCheck:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiScale:
+                case BlockIDs.dbiScale:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiLangOld:
+                case BlockIDs.dbiLangOld:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiLangFileOld:
+                case BlockIDs.dbiLangFileOld:
                     {
                         values.Add("v", stream.ReadString());
                     }
                     break;
 
-                case DataBlockIDs.dbiWindowPosition:
+                case BlockIDs.dbiWindowPosition:
                     {
                         values.Add("x", stream.ReadInt32());
                         values.Add("y", stream.ReadInt32());
@@ -368,170 +374,170 @@ namespace MihaZupan.TelegramLocalStorage
                     }
                     break;
 
-                case DataBlockIDs.dbiLoggedPhoneNumber:
+                case BlockIDs.dbiLoggedPhoneNumber:
                     {
                         values.Add("v", stream.ReadString());
                     }
                     break;
 
-                case DataBlockIDs.dbiMutePeer:
+                case BlockIDs.dbiMutePeer:
                     {
                         values.Add("peerId", stream.ReadUInt64());
                     }
                     break;
 
-                case DataBlockIDs.dbiMutedPeers:
+                case BlockIDs.dbiMutedPeers:
                     {
                         values.Add("count", stream.ReadPeerIds());
                     }
                     break;
 
-                case DataBlockIDs.dbiSendKey:
+                case BlockIDs.dbiSendKey:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiCatsAndDogs:
+                case BlockIDs.dbiCatsAndDogs:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiTileBackground:
+                case BlockIDs.dbiTileBackground:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiAdaptiveForWide:
+                case BlockIDs.dbiAdaptiveForWide:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiAutoLock:
+                case BlockIDs.dbiAutoLock:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiReplaceEmoji:
+                case BlockIDs.dbiReplaceEmoji:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiSuggestEmoji:
+                case BlockIDs.dbiSuggestEmoji:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiSuggestStickersByEmoji:
+                case BlockIDs.dbiSuggestStickersByEmoji:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiDefaultAttach:
+                case BlockIDs.dbiDefaultAttach:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiNotifyView:
+                case BlockIDs.dbiNotifyView:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiAskDownloadPath:
+                case BlockIDs.dbiAskDownloadPath:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiDownloadPathOld:
+                case BlockIDs.dbiDownloadPathOld:
                     {
                         values.Add("v", stream.ReadString());
                     }
                     break;
 
-                case DataBlockIDs.dbiDownloadPath:
+                case BlockIDs.dbiDownloadPath:
                     {
                         values.Add("v", stream.ReadString());
                         values.Add("bookmark", stream.ReadByteArray());
                     }
                     break;
 
-                case DataBlockIDs.dbiCompressPastedImage:
+                case BlockIDs.dbiCompressPastedImage:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiEmojiTabOld:
+                case BlockIDs.dbiEmojiTabOld:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiRecentEmojiOldOld:
+                case BlockIDs.dbiRecentEmojiOldOld:
                     {
                         values.Add("v", stream.ReadRecentEmojiPreloadOldOld());
                     }
                     break;
 
-                case DataBlockIDs.dbiRecentEmojiOld:
+                case BlockIDs.dbiRecentEmojiOld:
                     {
                         values.Add("v", stream.ReadRecentEmojiPreloadOld());
                     }
                     break;
 
-                case DataBlockIDs.dbiRecentEmoji:
+                case BlockIDs.dbiRecentEmoji:
                     {
                         values.Add("v", stream.ReadRecentEmojiPreload());
                     }
                     break;
 
-                case DataBlockIDs.dbiRecentStickers:
+                case BlockIDs.dbiRecentStickers:
                     {
                         values.Add("v", stream.ReadRecentStickerPreload());
                     }
                     break;
 
-                case DataBlockIDs.dbiEmojiVariantsOld:
+                case BlockIDs.dbiEmojiVariantsOld:
                     {
                         values.Add("v", stream.ReadEmojiColorVariantsOld());
                     }
                     break;
 
-                case DataBlockIDs.dbiEmojiVariants:
+                case BlockIDs.dbiEmojiVariants:
                     {
                         values.Add("v", stream.ReadEmojiColorVariants());
                     }
                     break;
 
-                case DataBlockIDs.dbiHiddenPinnedMessages:
+                case BlockIDs.dbiHiddenPinnedMessages:
                     {
                         values.Add("v", stream.ReadHiddenPinnedMessagesMap());
                     }
                     break;
 
-                case DataBlockIDs.dbiDialogLastPath:
+                case BlockIDs.dbiDialogLastPath:
                     {
                         values.Add("path", stream.ReadString());
                     }
                     break;
 
-                case DataBlockIDs.dbiSongVolume:
+                case BlockIDs.dbiSongVolume:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
                     break;
 
-                case DataBlockIDs.dbiVideoVolume:
+                case BlockIDs.dbiVideoVolume:
                     {
                         values.Add("v", stream.ReadInt32());
                     }
@@ -546,7 +552,7 @@ namespace MihaZupan.TelegramLocalStorage
             return true;
         }
 
-        public enum DataBlockIDs
+        public enum BlockIDs
         {
             dbiKey = 0x00,
             dbiUser = 0x01,

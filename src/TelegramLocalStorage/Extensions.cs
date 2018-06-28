@@ -5,15 +5,6 @@ namespace MihaZupan.TelegramLocalStorage
 {
     internal static class Extensions
     {
-        public static bool IsSameAs(this byte[] a, byte[] b)
-        {
-            if (a.Length != b.Length) return false;
-            for (int i = 0; i < a.Length; i++)
-            {
-                if (a[i] != b[i]) return false;
-            }
-            return true;
-        }
         public static byte[] Copy(this byte[] bytes)
         {
             byte[] copy = new byte[bytes.Length];

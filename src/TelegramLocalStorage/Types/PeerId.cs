@@ -1,16 +1,18 @@
-﻿using Newtonsoft.Json;
-
-namespace MihaZupan.TelegramLocalStorage.Types
+﻿namespace MihaZupan.TelegramLocalStorage.Types
 {
-    [JsonConverter(typeof(PeerIdConverter))]
     public class PeerId
     {
-        public PeerId(ulong id)
+        internal PeerId(ulong id)
         {
             Id = id;
         }
 
         public ulong Id;
+
+        public override string ToString()
+        {
+            return Id.ToString();
+        }
 
         public static implicit operator PeerId(ulong id)
             => new PeerId(id);

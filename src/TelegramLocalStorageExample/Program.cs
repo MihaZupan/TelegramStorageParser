@@ -1,58 +1,48 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.IO;
+﻿using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using System.Collections.Generic;
-using MihaZupan.TelegramLocalStorage.TgCrypto;
-using MihaZupan.TelegramLocalStorage.Types;
+using MihaZupan.TelegramLocalStorage;
 
-namespace MihaZupan.TelegramLocalStorage
+namespace MihaZupan.TelegramLocalStorageExample
 {
     class Program
     {
         static void Main(string[] args)
         {
-            if (Settings.TryParseSettings(out Settings settings))
-            {
-                WriteJson("settings.json", settings);
-            }
-            else
-            {
-                Console.WriteLine("Failed to read settings");
-            }
-            
-            if (Map.TryParseMap(Encoding.UTF8.GetBytes("pass"), out Map map, out AuthKey localKey))
-            {
-                WriteJson("map.json", map);
+            string tDataPath = args.Length != 0 ? args[0] : "tdata";
 
-                //SaveAllImages(map.ImagesMap, localKey);
-                //SaveAllAudios(map.AudiosMap, localKey);
-                
-                // Only try parsing MtpData if parsing the map was successful since we need the same key
-                if (Settings.TryReadMtpData(Constants.DataNameKey, localKey, out Settings mtpData))
+            // Local passcode
+            ParsingState parsingState = LocalStorage.TryParse(tDataPath, "passcode123", out LocalStorage localStorage);
+
+            // No passcode - same as passing null as the passcode
+            //ParsingState parsingState = LocalStorage.TryParse(tDataPath, out LocalStorage localStorage);
+
+            if (parsingState != ParsingState.Success)
+            {
+                if (parsingState == ParsingState.InvalidPasscode)
                 {
-                    WriteJson("mtpData.json", mtpData);
+                    Console.WriteLine("Invalid passcode, trying to brute force it now");
+                    TryBruteforceMapPasscode(tDataPath);
                 }
                 else
                 {
-                    Console.WriteLine("Failed to read mtp data");
+                    Console.WriteLine("Something went wrong: " + parsingState);
                 }
             }
             else
             {
-                Console.WriteLine("Failed to parse map");
+                localStorage.ExportImages("TG-Images");
+                localStorage.ExportAudios("TG-Audios");
             }
-
-            TryBruteforceMapPasscode();
-
+                        
             Console.WriteLine("Done");
             Console.ReadLine();
         }
 
-        static void TryBruteforceMapPasscode()
+        // Sample method that tests all 4-character combinations of lowercase, uppercase English letters and numbers
+        static void TryBruteforceMapPasscode(string tDataPath)
         {
             // Prepare some variables
             int coreCount = Environment.ProcessorCount - 1;
@@ -62,7 +52,7 @@ namespace MihaZupan.TelegramLocalStorage
             string correctPasscode = "";
             int tested = 0;
             bool found = false;
-            MapPasscodeBruteForce bruteForce = new MapPasscodeBruteForce(coreCount);
+            MapPasscodeBruteForce bruteForce = new MapPasscodeBruteForce(tDataPath, coreCount);
 
             // Testing all 4-character combinations of upper and lowercase English letters and numbers
             const int numChars = 4;
@@ -133,7 +123,6 @@ namespace MihaZupan.TelegramLocalStorage
                     {
                         found = true;
                         correctPasscode = Encoding.UTF8.GetString(passcode);
-                        File.WriteAllText("passcode.txt", correctPasscode);
                         Console.WriteLine("Correct passcode: " + correctPasscode);
                     }
                     active[thread] = false;
@@ -143,54 +132,5 @@ namespace MihaZupan.TelegramLocalStorage
             Console.WriteLine("Total time elapsed: {0} s", stopwatch.ElapsedMilliseconds / 1000);
             Console.WriteLine("Average speed: {0} hashes/s", (int)((float)tested / stopwatch.ElapsedMilliseconds * 1000));
         }
-        public static void Shuffle(byte[][] array)
-        {	
-            Random rng = new Random();	
-            int n = array.Length;	
-            while (n > 1)	
-            {	
-                int k = rng.Next(n--);	
-                byte[] temp = array[n];	
-                array[n] = array[k];	
-                array[k] = temp;	
-            }	
-        }
-
-        // Helper to serialize the object to a file
-        static void WriteJson(string fileName, object obj)
-        {
-            File.WriteAllText(fileName, JsonConvert.SerializeObject(obj, Formatting.Indented));
-        }        
-
-        static void SaveAllImages(Dictionary<StorageKey, FileDesc> imagesMap, AuthKey localKey)
-        {
-            Directory.CreateDirectory("images");
-            int imageCount = 0;
-            foreach (var imageFile in imagesMap.Values)
-            {
-                if (FileIO.FileExists(imageFile, FilePath.User))
-                {
-                    var image = FileIO.ReadEncryptedFile(imageFile, FilePath.User, localKey);
-                    image.SeekForward(20);
-                    byte[] data = image.ReadByteArray();
-                    File.WriteAllBytes("images\\" + ++imageCount + ".jpg", data);
-                }
-            }
-        }
-        static void SaveAllAudios(Dictionary<StorageKey, FileDesc> audiosMap, AuthKey localKey)
-        {
-            Directory.CreateDirectory("audio");
-            int audioCount = 0;
-            foreach (var audioFile in audiosMap.Values)
-            {
-                if (FileIO.FileExists(audioFile, FilePath.User))
-                {
-                    var audio = FileIO.ReadEncryptedFile(audioFile, FilePath.User, localKey);
-                    audio.SeekForward(16);
-                    byte[] data = audio.ReadByteArray();
-                    File.WriteAllBytes("audio\\" + ++audioCount + ".ogg", data);
-                }
-            }
-        }
-    }         
+    }
 }

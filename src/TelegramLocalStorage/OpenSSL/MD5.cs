@@ -1,8 +1,9 @@
 ﻿using System.Runtime.InteropServices;
+using System.Security;
 
 namespace MihaZupan.TelegramLocalStorage.OpenSSL
 {
-    public class Md5
+    internal class Md5
     {
         private byte[] md5_ctx = new byte[92];
 
@@ -30,15 +31,19 @@ namespace MihaZupan.TelegramLocalStorage.OpenSSL
             return md;
         }
 
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("libcrypto.dll", CallingConvention = CallingConvention.Cdecl)]
         public extern static void MD5(byte[] data, int length, byte[] messageDigest);
 
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("libcrypto.dll", CallingConvention = CallingConvention.Cdecl)]
         private extern static void MD5_Init(byte[] ctx);
 
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("libcrypto.dll", CallingConvention = CallingConvention.Cdecl)]
         private extern static void MD5_Update(byte[] ctx, byte[] data, int length);
 
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("libcrypto.dll", CallingConvention = CallingConvention.Cdecl)]
         private extern static void MD5_Final(byte[] md, byte[] ctx);
     }

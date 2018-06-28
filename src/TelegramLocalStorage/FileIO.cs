@@ -7,17 +7,41 @@ using static MihaZupan.TelegramLocalStorage.Extensions;
 
 namespace MihaZupan.TelegramLocalStorage
 {
-    enum FilePath
+    internal enum FilePath
     {
         User,
         Base // base path
     }
 
-    sealed class FileIO
+    internal class FileIO
     {
-        public static DataStream ReadFile(string name, FilePath options)
+        private string BasePath;
+        private string UserPath;
+
+        public FileIO(string tDataPath)
         {
-            string path = (options == FilePath.User ? Constants.UserPath : Constants.BasePath) + name;
+            BasePath = tDataPath[tDataPath.Length - 1] == '/' ? tDataPath : tDataPath + "/";
+            UserPath = BasePath + "D877F783D5D3EF8C/";
+        }
+
+        public bool FileExists(string name, FilePath options)
+        {
+            string path = (options == FilePath.User ? UserPath : BasePath) + name;
+            if (File.Exists(path + "0")) return true;
+            else return File.Exists(path + "1");
+        }
+        public bool FileExists(FileKey fileKey, FilePath options)
+        {
+            return FileExists(fileKey.ToFilePart(), options);
+        }
+        public bool FileExists(FileDesc fileDesc, FilePath options)
+        {
+            return FileExists(fileDesc.Key.ToFilePart(), options);
+        }
+
+        public DataStream ReadFile(string name, FilePath options)
+        {
+            string path = (options == FilePath.User ? UserPath : BasePath) + name;
             if (File.Exists(path + "0")) path = path + "0";
             else path = path + "1";
 
@@ -44,23 +68,8 @@ namespace MihaZupan.TelegramLocalStorage
 
             return new DataStream(data);
         }
-
-        public static bool FileExists(string name, FilePath options)
-        {
-            string path = (options == FilePath.User ? Constants.UserPath : Constants.BasePath) + name;
-            if (File.Exists(path + "0")) return true;
-            else return File.Exists(path + "1");
-        }
-        public static bool FileExists(FileKey fileKey, FilePath options)
-        {
-            return FileExists(fileKey.ToFilePart(), options);
-        }
-        public static bool FileExists(FileDesc fileDesc, FilePath options)
-        {
-            return FileExists(fileDesc.Key.ToFilePart(), options);
-        }
-
-        public static DataStream ReadEncryptedFile(string name, FilePath options, AuthKey key)
+        
+        public DataStream ReadEncryptedFile(string name, FilePath options, AuthKey key)
         {
             DataStream encrypted = ReadFile(name, options);
             if (Decrypt.TryDecryptLocal(encrypted.ReadByteArray(), key, out byte[] decrypted))
@@ -69,11 +78,11 @@ namespace MihaZupan.TelegramLocalStorage
             }
             else throw new Exception("Could not decrypt file");
         }
-        public static DataStream ReadEncryptedFile(FileKey fileKey, FilePath options, AuthKey key)
+        public DataStream ReadEncryptedFile(FileKey fileKey, FilePath options, AuthKey key)
         {
             return ReadEncryptedFile(fileKey.ToFilePart(), options, key);
         }
-        public static DataStream ReadEncryptedFile(FileDesc fileDesc, FilePath options, AuthKey key)
+        public DataStream ReadEncryptedFile(FileDesc fileDesc, FilePath options, AuthKey key)
         {
             return ReadEncryptedFile(fileDesc.Key.ToFilePart(), options, key);
         }

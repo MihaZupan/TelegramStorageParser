@@ -4,7 +4,7 @@ using static MihaZupan.TelegramLocalStorage.Extensions;
 
 namespace MihaZupan.TelegramLocalStorage.TgCrypto
 {
-    class Decrypt
+    internal class Decrypt
     {
         public static bool TryDecryptLocal(byte[] encrypted, AuthKey key, out byte[] data)
         {

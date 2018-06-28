@@ -2,7 +2,7 @@
 {
     public class FileDesc
     {
-        public FileDesc(FileKey key, int size)
+        internal FileDesc(FileKey key, int size)
         {
             Key = key;
             Size = size;

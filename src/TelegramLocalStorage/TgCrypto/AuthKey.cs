@@ -3,11 +3,13 @@ using MihaZupan.TelegramLocalStorage.OpenSSL;
 
 namespace MihaZupan.TelegramLocalStorage.TgCrypto
 {
-    public class AuthKey
+    internal class AuthKey
     {
+        private static byte[] EmptyPassword = new byte[0];
+
         public AuthKey(byte[] key)
         {
-            if (key.Length != Constants.AuthKeySize) throw new ArgumentException("key is not 256 bytes long");
+            if (key.Length < Constants.NeededAuthKeySize) throw new ArgumentException("key is too small");
             _key = key;
         }
 
@@ -56,11 +58,11 @@ namespace MihaZupan.TelegramLocalStorage.TgCrypto
 
         public static AuthKey CreateLocalKey(byte[] password, byte[] salt)
         {
-            byte[] key = new byte[Constants.AuthKeySize];
-            
+            byte[] key = new byte[Constants.NeededAuthKeySize];
+
             if (password == null || password.Length == 0)
             {
-                KDF.PKCS5_PBKDF2_HMAC_SHA1(new byte[0], salt, Constants.LocalEncryptNoPwdIterCount, key);
+                KDF.PKCS5_PBKDF2_HMAC_SHA1(EmptyPassword, salt, Constants.LocalEncryptNoPwdIterCount, key);
             }
             else
             {
