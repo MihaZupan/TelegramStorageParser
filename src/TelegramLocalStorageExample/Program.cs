@@ -11,38 +11,64 @@ namespace MihaZupan.TelegramLocalStorageExample
     {
         static void Main(string[] args)
         {
-            string tDataPath = args.Length != 0 ? args[0] : "tdata";
-
+            //string tDataPath = args.Length != 0 ? args[0] : "tdata";
+            string tDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/Telegram Desktop/tdata";
+            
             // Local passcode
             ParsingState parsingState = LocalStorage.TryParse(tDataPath, "passcode123", out LocalStorage localStorage);
 
             // No passcode - same as passing null as the passcode
             //ParsingState parsingState = LocalStorage.TryParse(tDataPath, out LocalStorage localStorage);
-
+                        
             if (parsingState != ParsingState.Success)
             {
                 if (parsingState == ParsingState.InvalidPasscode)
                 {
                     Console.WriteLine("Invalid passcode, trying to brute force it now");
-                    TryBruteforceMapPasscode(tDataPath);
+                    if (TryBruteforceMapPasscode(tDataPath, out string passcode))
+                    {
+                        Console.WriteLine("Found the passcode: " + passcode);
+                        parsingState = LocalStorage.TryParse(tDataPath, passcode, out localStorage);
+                    }
                 }
                 else
                 {
                     Console.WriteLine("Something went wrong: " + parsingState);
                 }
             }
-            else
+
+            if (parsingState == ParsingState.Success)
             {
-                localStorage.ExportImages("TG-Images");
-                localStorage.ExportAudios("TG-Audios");
+                Console.WriteLine("App version: " + localStorage.AppVersion);
+                Console.WriteLine();
+
+                int MB = 1024 * 1024;
+                Console.WriteLine("Total storage size for images: {0} MB ", localStorage.StorageImagesSize / MB);
+                Console.WriteLine("Total storage size for stickers: {0} MB", localStorage.StorageStickersSize / MB);
+                Console.WriteLine("Total storage size for audio files: {0} MB", localStorage.StorageAudiosSize / MB);
+                Console.WriteLine();
+
+                Console.WriteLine("Settings:");
+                foreach (var setting in localStorage.SettingsMap)
+                {
+                    Console.WriteLine("{0} with {1} value{2}",
+                        setting.Key,
+                        setting.Value.Count,
+                        setting.Value.Count % 100 == 1 ? "" : "s");
+                }
+                Console.WriteLine();
+
+
+                //localStorage.ExportImages("TG-Images");
+                //localStorage.ExportAudios("TG-Audios");
             }
-                        
+
             Console.WriteLine("Done");
             Console.ReadLine();
         }
 
         // Sample method that tests all 4-character combinations of lowercase, uppercase English letters and numbers
-        static void TryBruteforceMapPasscode(string tDataPath)
+        static bool TryBruteforceMapPasscode(string tDataPath, out string pass)
         {
             // Prepare some variables
             int coreCount = Environment.ProcessorCount - 1;
@@ -123,7 +149,6 @@ namespace MihaZupan.TelegramLocalStorageExample
                     {
                         found = true;
                         correctPasscode = Encoding.UTF8.GetString(passcode);
-                        Console.WriteLine("Correct passcode: " + correctPasscode);
                     }
                     active[thread] = false;
                 });
@@ -131,6 +156,9 @@ namespace MihaZupan.TelegramLocalStorageExample
             stopwatch.Stop();
             Console.WriteLine("Total time elapsed: {0} s", stopwatch.ElapsedMilliseconds / 1000);
             Console.WriteLine("Average speed: {0} hashes/s", (int)((float)tested / stopwatch.ElapsedMilliseconds * 1000));
+
+            pass = found ? correctPasscode : null;
+            return found;
         }
     }
 }

@@ -42,6 +42,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlockIDs.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="DataStream.cs" />
     <Compile Include="FileIO.cs" />

@@ -51,7 +51,7 @@ namespace MihaZupan.TelegramLocalStorage
             FileIO fileIO = new FileIO(tDataPath);
             if (!fileIO.FileExists("map", FilePath.User)) throw new FileNotFoundException("Could not find the map file");
 
-            DataStream stream = fileIO.ReadFile("map", FilePath.User);
+            DataStream stream = fileIO.ReadFile("map", FilePath.User).DataStream;
             Salt = stream.ReadByteArray();
             byte[] keyEncryptedData = stream.ReadByteArray();
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using MihaZupan.TelegramLocalStorage.TgCrypto;
@@ -7,7 +8,51 @@ namespace MihaZupan.TelegramLocalStorage
 {
     public class LocalStorage
     {
+        #region Public properties
         public string TelegramDataPath { get; private set; }
+
+        public int AppVersion
+        {
+            get
+            {
+                EnsureParsedState();
+                return _map.AppVersion;
+            }
+        }
+        public long StorageImagesSize
+        {
+            get
+            {
+                EnsureParsedState();
+                return _map.StorageImagesSize;
+            }
+        }
+        public long StorageStickersSize
+        {
+            get
+            {
+                EnsureParsedState();
+                return _map.StorageStickersSize;
+            }
+        }
+        public long StorageAudiosSize
+        {
+            get
+            {
+                EnsureParsedState();
+                return _map.StorageAudiosSize;
+            }
+        }
+
+        public Dictionary<BlockIDs, Dictionary<string, object>> SettingsMap
+        {
+            get
+            {
+                EnsureParsedState();
+                return _settings.SettingsMap;
+            }
+        }
+        #endregion
 
         private FileIO _fileIO;        
         private AuthKey _localKey = null;
@@ -37,14 +82,14 @@ namespace MihaZupan.TelegramLocalStorage
             byte[] passcodeUtf8 = passcode == null ? null : Encoding.UTF8.GetBytes(passcode);
             ParsingState mapState = Map.TryParseMap(localStorage._fileIO, passcodeUtf8, out localStorage._map, out localStorage._localKey);
             if (mapState != ParsingState.Success) return mapState;
-
+            
             localStorage._localStorageParsed = true;
             return ParsingState.Success;
         }
 
         public void ExportImages(string outputDirectory)
         {
-            if (!_localStorageParsed) throw new Exception("Local Storage has not been parsed");
+            EnsureParsedState();
 
             Directory.CreateDirectory(outputDirectory);
             int imageCount = 0;
@@ -53,7 +98,7 @@ namespace MihaZupan.TelegramLocalStorage
             {
                 if (_fileIO.FileExists(imageFile, FilePath.User))
                 {
-                    var image = _fileIO.ReadEncryptedFile(imageFile, FilePath.User, _localKey);
+                    var image = _fileIO.ReadEncryptedFile(imageFile, FilePath.User, _localKey).DataStream;
                     image.SeekForward(20);
                     byte[] data = image.ReadByteArray();
                     File.WriteAllBytes(Path.Combine(outputDirectory, ++imageCount + ".jpg"), data);
@@ -62,6 +107,8 @@ namespace MihaZupan.TelegramLocalStorage
         }
         public void ExportAudios(string outputDirectory)
         {
+            EnsureParsedState();
+
             Directory.CreateDirectory(outputDirectory);
             int audioCount = 0;
             Console.WriteLine("Exporting {0} audio files", _map.AudiosMap.Count);
@@ -69,12 +116,23 @@ namespace MihaZupan.TelegramLocalStorage
             {
                 if (_fileIO.FileExists(audioFile, FilePath.User))
                 {
-                    var audio = _fileIO.ReadEncryptedFile(audioFile, FilePath.User, _localKey);
+                    var audio = _fileIO.ReadEncryptedFile(audioFile, FilePath.User, _localKey).DataStream;
                     audio.SeekForward(16);
                     byte[] data = audio.ReadByteArray();
                     File.WriteAllBytes(Path.Combine(outputDirectory, ++audioCount + ".ogg"), data);
                 }
             }
         }
+
+        private void EnsureParsedState()
+        {
+            if (!_localStorageParsed) throw new NotParsedException();
+        }
+    }
+
+    public class NotParsedException : Exception
+    {
+        internal NotParsedException()
+            : base("Local Storage has not been parsed") { }
     }
 }

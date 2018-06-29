@@ -13,6 +13,18 @@ namespace MihaZupan.TelegramLocalStorage
         Base // base path
     }
 
+    internal class FileReadDescriptor
+    {
+        public DataStream DataStream;
+        public int Version;
+
+        public FileReadDescriptor(DataStream stream, int version)
+        {
+            DataStream = stream;
+            Version = version;
+        }
+    }
+
     internal class FileIO
     {
         private string BasePath;
@@ -39,7 +51,7 @@ namespace MihaZupan.TelegramLocalStorage
             return FileExists(fileDesc.Key.ToFilePart(), options);
         }
 
-        public DataStream ReadFile(string name, FilePath options)
+        public FileReadDescriptor ReadFile(string name, FilePath options)
         {
             string path = (options == FilePath.User ? UserPath : BasePath) + name;
             if (File.Exists(path + "0")) path = path + "0";
@@ -66,23 +78,24 @@ namespace MihaZupan.TelegramLocalStorage
             if (!CompareBytes(bytes, md5.Finalize(), bytes.Length - 16, 0, 16))
                 throw new Exception("invalid md5 hash");
 
-            return new DataStream(data);
+            return new FileReadDescriptor(new DataStream(data), version);
         }
         
-        public DataStream ReadEncryptedFile(string name, FilePath options, AuthKey key)
+        public FileReadDescriptor ReadEncryptedFile(string name, FilePath options, AuthKey key)
         {
-            DataStream encrypted = ReadFile(name, options);
-            if (Decrypt.TryDecryptLocal(encrypted.ReadByteArray(), key, out byte[] decrypted))
+            FileReadDescriptor file = ReadFile(name, options);
+            if (Decrypt.TryDecryptLocal(file.DataStream.ReadByteArray(), key, out byte[] decrypted))
             {
-                return new DataStream(decrypted);
+                file.DataStream = new DataStream(decrypted);
+                return file;
             }
             else throw new Exception("Could not decrypt file");
         }
-        public DataStream ReadEncryptedFile(FileKey fileKey, FilePath options, AuthKey key)
+        public FileReadDescriptor ReadEncryptedFile(FileKey fileKey, FilePath options, AuthKey key)
         {
             return ReadEncryptedFile(fileKey.ToFilePart(), options, key);
         }
-        public DataStream ReadEncryptedFile(FileDesc fileDesc, FilePath options, AuthKey key)
+        public FileReadDescriptor ReadEncryptedFile(FileDesc fileDesc, FilePath options, AuthKey key)
         {
             return ReadEncryptedFile(fileDesc.Key.ToFilePart(), options, key);
         }

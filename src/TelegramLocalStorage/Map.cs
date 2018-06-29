@@ -6,6 +6,8 @@ namespace MihaZupan.TelegramLocalStorage
 {
     internal class Map
     {
+        public int AppVersion;
+
         public Dictionary<PeerId, FileKey> DraftsMap;
         public Dictionary<PeerId, FileKey> DraftCursorsMap;
         public Dictionary<PeerId, bool> DraftsNotReadMap;
@@ -48,7 +50,8 @@ namespace MihaZupan.TelegramLocalStorage
 
             if (!fileIO.FileExists("map", FilePath.User)) return ParsingState.FileNotFound;
 
-            DataStream stream = fileIO.ReadFile("map", FilePath.User);
+            FileReadDescriptor file = fileIO.ReadFile("map", FilePath.User);
+            DataStream stream = file.DataStream;
             byte[] salt = stream.ReadByteArray();
             byte[] keyEncrypted = stream.ReadByteArray();
             byte[] mapEncrypted = stream.ReadByteArray();
@@ -62,7 +65,12 @@ namespace MihaZupan.TelegramLocalStorage
             result = Decrypt.TryDecryptLocal(mapEncrypted, localKey, out byte[] mapData);
             if (!result) return ParsingState.InvalidData;
 
-            return TryParse(new DataStream(mapData), out map);
+            ParsingState state = TryParse(new DataStream(mapData), out map);
+            if (state == ParsingState.Success)
+            {
+                map.AppVersion = file.Version;
+            }
+            return state;
         }
 
         private static ParsingState TryParse(DataStream stream, out Map map)
