@@ -11,6 +11,8 @@ namespace MihaZupan.TelegramLocalStorageExample
     {
         static void Main(string[] args)
         {
+            TestGeneratedMapData();
+
             //string tDataPath = args.Length != 0 ? args[0] : "tdata";
             string tDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/Telegram Desktop/tdata";
             
@@ -19,7 +21,7 @@ namespace MihaZupan.TelegramLocalStorageExample
 
             // No passcode - same as passing null as the passcode
             //ParsingState parsingState = LocalStorage.TryParse(tDataPath, out LocalStorage localStorage);
-                        
+
             if (parsingState != ParsingState.Success)
             {
                 if (parsingState == ParsingState.InvalidPasscode)
@@ -36,7 +38,7 @@ namespace MihaZupan.TelegramLocalStorageExample
                     Console.WriteLine("Something went wrong: " + parsingState);
                 }
             }
-
+            
             if (parsingState == ParsingState.Success)
             {
                 Console.WriteLine("App version: " + localStorage.AppVersion);
@@ -66,6 +68,21 @@ namespace MihaZupan.TelegramLocalStorageExample
             Console.WriteLine("Done");
             Console.ReadLine();
         }
+
+        static void TestGeneratedMapData()
+        {
+            Random random = new Random();
+            bool works = true;
+            for (int i = 0; i < 10; i++)
+            {
+                byte[] passcode = new byte[random.Next(1, 20)];
+                random.NextBytes(passcode);
+                byte[] mapBytes = MapPasscodeBruteForce.GenerateTestMapData(passcode);
+                MapPasscodeBruteForce bf = new MapPasscodeBruteForce(mapBytes, 1);
+                if (!bf.Try(passcode, 0)) works = false;
+            }
+            Console.WriteLine("Generated test map data " + (works ? "works" : "doesn't work"));
+        }        
 
         // Sample method that tests all 4-character combinations of lowercase, uppercase English letters and numbers
         static bool TryBruteforceMapPasscode(string tDataPath, out string pass)

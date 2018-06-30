@@ -23,7 +23,7 @@ namespace MihaZupan.TelegramLocalStorage
             byte[] salt = file.ReadByteArray();
             if (salt.Length != Constants.LocalEncryptSaltSize) return ParsingState.InvalidData;
             byte[] settingsEncrypted = file.ReadByteArray();
-            
+
             AuthKey settingsKey = AuthKey.CreateLocalKey(null, salt);
             bool result = Decrypt.TryDecryptLocal(settingsEncrypted, settingsKey, out byte[] settingsData);
             if (!result) return ParsingState.InvalidData;

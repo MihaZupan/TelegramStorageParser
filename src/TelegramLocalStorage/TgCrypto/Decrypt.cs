@@ -17,14 +17,14 @@ namespace MihaZupan.TelegramLocalStorage.TgCrypto
 
             byte[] encryptedActual = new byte[fullLen];
             Array.Copy(encrypted, 16, encryptedActual, 0, fullLen);
-            byte[] encryptedKey = new byte[16];
-            Array.Copy(encrypted, 0, encryptedKey, 0, 16);
+            byte[] messageKey = new byte[16];
+            Array.Copy(encrypted, 0, messageKey, 0, 16);
 
-            byte[] decrypted = AesDecryptLocal(encryptedActual, fullLen, key, encryptedKey);
+            byte[] decrypted = AesDecryptLocal(encryptedActual, fullLen, key, messageKey);
 
             byte[] sha1 = new byte[20];
             SHA.SHA1(decrypted, decrypted.Length, sha1);
-            if (!CompareBytes(sha1, encryptedKey, 0, 0, 16))
+            if (!CompareBytes(sha1, messageKey, 0, 0, 16))
                 return false;
 
             uint dataLen = BitConverter.ToUInt32(decrypted, 0);

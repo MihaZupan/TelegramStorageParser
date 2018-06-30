@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using MihaZupan.TelegramLocalStorage.Types;
 
@@ -19,7 +20,7 @@ namespace MihaZupan.TelegramLocalStorage
         }
 
         public byte[] Data => _data;
-
+        public int Position => _offset;
         public bool AtEnd => _data.Length <= _offset;
 
         public void SeekForward(int count)
@@ -55,19 +56,19 @@ namespace MihaZupan.TelegramLocalStorage
 
         public ushort ReadUInt16()
         {
-            ushort value = (ushort)(
-                _data[_offset] * 256u +
+            ushort value = (ushort)
+                ((_data[_offset] << 8) +
                 _data[_offset + 1]);
             _offset += 2;
             return value;
         }
         public uint ReadUInt32()
         {
-            uint value =
-                _data[_offset] * 16777216u +
-                _data[_offset + 1] * 65536u +
-                _data[_offset + 2] * 256u +
-                _data[_offset + 3];
+            uint value = (uint)
+                ((_data[_offset] << 24) +
+                (_data[_offset + 1] << 16) +
+                (_data[_offset + 2] << 8) +
+                _data[_offset + 3]);
             _offset += 4;
             return value;
         }
@@ -82,14 +83,15 @@ namespace MihaZupan.TelegramLocalStorage
         public ulong ReadUInt64()
         {
             ulong value =
-                _data[_offset] * 72057594037927936u +
-                _data[_offset + 1] * 281474976710656u +
-                _data[_offset + 2] * 1099511627776u +
-                _data[_offset + 3] * 4294967296u +
-                _data[_offset + 4] * 16777216u +
-                _data[_offset + 5] * 65536u +
-                _data[_offset + 6] * 256u +
-                _data[_offset + 7];
+                (ulong)
+                ((_data[_offset] << 56) +
+                (_data[_offset + 1] << 48) +
+                (_data[_offset + 2] << 40) +
+                (_data[_offset + 3] << 32) +
+                (_data[_offset + 4] << 24) +
+                (_data[_offset + 5] << 16) +
+                (_data[_offset + 6] << 8) +
+                _data[_offset + 7]);
             _offset += 8;
             return value;
         }
@@ -201,6 +203,34 @@ namespace MihaZupan.TelegramLocalStorage
                 totalSize += size;
             }
             return ret;
+        }
+    }
+    internal class DataStreamWriter
+    {
+        private MemoryStream _stream;
+
+        public byte[] Data => _stream.ToArray();
+
+        public DataStreamWriter()
+        {
+             _stream = new MemoryStream();
+        }
+        public DataStreamWriter(int capacity)
+        {
+            _stream = new MemoryStream(capacity);
+        }
+
+        public void Write(byte[] data)
+        {
+            Write((uint)data.Length);
+            _stream.Write(data, 0, data.Length);
+        }
+        public void Write(uint value)
+        {
+            _stream.WriteByte((byte)(value >> 24));
+            _stream.WriteByte((byte)(value >> 16));
+            _stream.WriteByte((byte)(value >> 8));
+            _stream.WriteByte((byte)(value));
         }
     }
 }

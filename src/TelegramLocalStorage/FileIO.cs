@@ -51,19 +51,22 @@ namespace MihaZupan.TelegramLocalStorage
             return FileExists(fileDesc.Key.ToFilePart(), options);
         }
 
-        public FileReadDescriptor ReadFile(string name, FilePath options)
+        public string GetFilePath(string name, FilePath options)
         {
             string path = (options == FilePath.User ? UserPath : BasePath) + name;
             if (File.Exists(path + "0")) path = path + "0";
             else path = path + "1";
+            return path;
+        }
 
-            byte[] bytes = File.ReadAllBytes(path);
+        public static FileReadDescriptor ReadMemoryFile(byte[] bytes)
+        {
             int index = 0;
 
             if (!CompareBytes(bytes, Constants.TDFMagic, 0, 0, Constants.TDFMagic.Length))
                 throw new Exception("bad magic");
             index += Constants.TDFMagic.Length;
-            
+
             int version = BitConverter.ToInt32(bytes, index);
             index += sizeof(int);
 
@@ -79,6 +82,16 @@ namespace MihaZupan.TelegramLocalStorage
                 throw new Exception("invalid md5 hash");
 
             return new FileReadDescriptor(new DataStream(data), version);
+        }
+        public static FileReadDescriptor ReadFile(string filePath)
+        {
+            byte[] bytes = File.ReadAllBytes(filePath);
+            return ReadMemoryFile(bytes);
+        }
+        public FileReadDescriptor ReadFile(string name, FilePath options)
+        {
+            string path = GetFilePath(name, options);
+            return ReadFile(path);
         }
         
         public FileReadDescriptor ReadEncryptedFile(string name, FilePath options, AuthKey key)
