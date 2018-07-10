@@ -32,6 +32,7 @@ namespace MihaZupan.TelegramLocalStorage
         public FileKey UserSettingsKey = null;
         public FileKey RecentHashtagsAndBotsKey = null;
         public FileKey SavedPeersKey = null;
+        public FileKey ExportSettingsKey = null;
 
         private Map()
         {
@@ -50,27 +51,34 @@ namespace MihaZupan.TelegramLocalStorage
 
             if (!fileIO.FileExists("map", FilePath.User)) return ParsingState.FileNotFound;
 
-            FileReadDescriptor file = fileIO.ReadFile("map", FilePath.User);
-            DataStream stream = file.DataStream;
-            byte[] salt = stream.ReadByteArray();
-            byte[] keyEncrypted = stream.ReadByteArray();
-            byte[] mapEncrypted = stream.ReadByteArray();
-            if (salt.Length != Constants.LocalEncryptSaltSize) return ParsingState.InvalidData;
-
-            AuthKey passKey = AuthKey.CreateLocalKey(password, salt);
-            bool result = Decrypt.TryDecryptLocal(keyEncrypted, passKey, out byte[] keyData);
-            if (!result) return ParsingState.InvalidPasscode;
-
-            localKey = new AuthKey(keyData);
-            result = Decrypt.TryDecryptLocal(mapEncrypted, localKey, out byte[] mapData);
-            if (!result) return ParsingState.InvalidData;
-
-            ParsingState state = TryParse(new DataStream(mapData), out map);
-            if (state == ParsingState.Success)
+            try
             {
-                map.AppVersion = file.Version;
+                FileReadDescriptor file = fileIO.ReadFile("map", FilePath.User);
+                DataStream stream = file.DataStream;
+                byte[] salt = stream.ReadByteArray();
+                byte[] keyEncrypted = stream.ReadByteArray();
+                byte[] mapEncrypted = stream.ReadByteArray();
+                if (salt.Length != Constants.LocalEncryptSaltSize) return ParsingState.InvalidData;
+
+                AuthKey passKey = AuthKey.CreateLocalKey(password, salt);
+                bool result = Decrypt.TryDecryptLocal(keyEncrypted, passKey, out byte[] keyData);
+                if (!result) return ParsingState.InvalidPasscode;
+
+                localKey = new AuthKey(keyData);
+                result = Decrypt.TryDecryptLocal(mapEncrypted, localKey, out byte[] mapData);
+                if (!result) return ParsingState.InvalidData;
+
+                ParsingState state = TryParse(new DataStream(mapData), out map);
+                if (state == ParsingState.Success)
+                {
+                    map.AppVersion = file.Version;
+                }
+                return state;
             }
-            return state;
+            catch
+            {
+                return ParsingState.InvalidData;
+            }
         }
 
         private static ParsingState TryParse(DataStream stream, out Map map)
@@ -206,6 +214,12 @@ namespace MihaZupan.TelegramLocalStorage
                     }
                     break;
 
+                case LocalStorageKeys.lskExportSettings:
+                    {
+                        ExportSettingsKey = stream.ReadUInt64();
+                    }
+                    break;
+
                 default:
                     return false;
             }
@@ -233,6 +247,7 @@ namespace MihaZupan.TelegramLocalStorage
             lskStickersKeys = 0x10, // no data
             lskTrustedBots = 0x11, // no data
             lskFavedStickers = 0x12, // no data
+        	lskExportSettings = 0x13, // no data
         };
     }
 }

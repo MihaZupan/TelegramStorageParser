@@ -23,16 +23,36 @@ namespace MihaZupan.TelegramLocalStorage
         public int Position => _offset;
         public bool AtEnd => _data.Length <= _offset;
 
-        public void SeekForward(int count)
+        private void EnsureSpace(int length)
         {
-            _offset += count;
+            if (_offset + length > _data.Length)
+                throw new ArgumentException("No more data");
         }
 
+        public void SeekForward(int count)
+        {
+            EnsureSpace(count);
+            _offset += count;
+        }
+        
         public byte[] ReadRawData(int length)
         {
+            EnsureSpace(length);
             if (length <= 0) return new byte[0];
             byte[] data = new byte[length];
             Array.Copy(_data, _offset, data, 0, length);
+            _offset += length;
+            return data;
+        }
+        public byte[] ReadShortRawDataReversed(int length)
+        {
+            EnsureSpace(length);
+            if (length <= 0) return new byte[0];
+            byte[] data = new byte[length];
+            for (int i = 0; i < length; i++)
+            {
+                data[i] = _data[_offset + length - i - 1];
+            }
             _offset += length;
             return data;
         }
@@ -40,9 +60,7 @@ namespace MihaZupan.TelegramLocalStorage
         {
             uint length = ReadUInt32();
             if (length <= 0) return new byte[0];
-            byte[] bytes = new byte[length];
-            Array.Copy(_data, _offset, bytes, 0, length);
-            _offset += (int)length;
+            byte[] bytes = ReadRawData((int)length);
             return bytes;
         }
         public string ReadString()
@@ -56,52 +74,23 @@ namespace MihaZupan.TelegramLocalStorage
 
         public ushort ReadUInt16()
         {
-            ushort value = (ushort)
-                ((_data[_offset] << 8) +
-                _data[_offset + 1]);
-            _offset += 2;
-            return value;
+            return BitConverter.ToUInt16(ReadShortRawDataReversed(2), 0);
         }
         public uint ReadUInt32()
         {
-            uint value = (uint)
-                ((_data[_offset] << 24) +
-                (_data[_offset + 1] << 16) +
-                (_data[_offset + 2] << 8) +
-                _data[_offset + 3]);
-            _offset += 4;
-            return value;
+            return BitConverter.ToUInt32(ReadShortRawDataReversed(4), 0);
         }
         public int ReadInt32()
         {
-            byte[] intBytes = new byte[4];
-            Array.Copy(_data, _offset, intBytes, 0, 4);
-            Array.Reverse(intBytes);
-            _offset += 4;
-            return BitConverter.ToInt32(intBytes, 0);
+            return BitConverter.ToInt32(ReadShortRawDataReversed(4), 0);
         }
         public ulong ReadUInt64()
         {
-            ulong value =
-                (ulong)
-                ((_data[_offset] << 56) +
-                (_data[_offset + 1] << 48) +
-                (_data[_offset + 2] << 40) +
-                (_data[_offset + 3] << 32) +
-                (_data[_offset + 4] << 24) +
-                (_data[_offset + 5] << 16) +
-                (_data[_offset + 6] << 8) +
-                _data[_offset + 7]);
-            _offset += 8;
-            return value;
+            return BitConverter.ToUInt64(ReadShortRawDataReversed(8), 0);
         }
         public long ReadInt64()
         {
-            byte[] intBytes = new byte[8];
-            Array.Copy(_data, _offset, intBytes, 0, 8);
-            Array.Reverse(intBytes);
-            _offset += 8;
-            return BitConverter.ToInt64(intBytes, 0);
+            return BitConverter.ToInt64(ReadShortRawDataReversed(8), 0);
         }
 
         public PeerId[] ReadPeerIds()

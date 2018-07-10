@@ -19,16 +19,23 @@ namespace MihaZupan.TelegramLocalStorage
 
             if (!fileIO.FileExists("settings", FilePath.Base)) return ParsingState.FileNotFound;
 
-            DataStream file = fileIO.ReadFile("settings", FilePath.Base).DataStream;
-            byte[] salt = file.ReadByteArray();
-            if (salt.Length != Constants.LocalEncryptSaltSize) return ParsingState.InvalidData;
-            byte[] settingsEncrypted = file.ReadByteArray();
+            try
+            {
+                DataStream file = fileIO.ReadFile("settings", FilePath.Base).DataStream;
+                byte[] salt = file.ReadByteArray();
+                if (salt.Length != Constants.LocalEncryptSaltSize) return ParsingState.InvalidData;
+                byte[] settingsEncrypted = file.ReadByteArray();
 
-            AuthKey settingsKey = AuthKey.CreateLocalKey(null, salt);
-            bool result = Decrypt.TryDecryptLocal(settingsEncrypted, settingsKey, out byte[] settingsData);
-            if (!result) return ParsingState.InvalidData;
+                AuthKey settingsKey = AuthKey.CreateLocalKey(null, salt);
+                bool result = Decrypt.TryDecryptLocal(settingsEncrypted, settingsKey, out byte[] settingsData);
+                if (!result) return ParsingState.InvalidData;
 
-            return TryParse(new DataStream(settingsData), out settings);
+                return TryParse(new DataStream(settingsData), out settings);
+            }
+            catch
+            {
+                return ParsingState.InvalidData;
+            }
         }
         public static ParsingState TryReadMtpData(FileIO fileIO, FileKey fileKey, AuthKey key, out Settings mtpData)
         {

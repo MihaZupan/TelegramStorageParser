@@ -1,7 +1,7 @@
 # Telegram Desktop Local Storage
 Program to decrypt and parse Telegram Desktop's local storage
 
-This project relies on OpenSSL for MD5, SHA1, AES-IGE and PBKDF2 implementations. See their [license here](https://www.openssl.org/source/license.txt).
+This project relies on OpenSSL for crypto primitives. See their [license here](https://www.openssl.org/source/license.txt).
 
 ## Usage example
 
@@ -9,24 +9,10 @@ Parse localstorage (brute force the passcode if necessary), export all saved ima
 
 Parsing of other data types (stickers, MTP auth keys ...) will follow
 
-## Useful references:
-
-[Telegram Desktop source code](https://github.com/telegramdesktop/tdesktop)
-
-Most relevant files (happy digging):
-* [localstorage.cpp](https://github.com/telegramdesktop/tdesktop/blob/dev/Telegram/SourceFiles/storage/localstorage.cpp)
-* [auth_key.cpp](https://github.com/telegramdesktop/tdesktop/blob/dev/Telegram/SourceFiles/mtproto/auth_key.cpp)
-* [auth_key.h](https://github.com/telegramdesktop/tdesktop/blob/dev/Telegram/SourceFiles/mtproto/auth_key.h)
-
 ## Brute forcing the passcode
-Make sure to disable 'Prefer 32-bit'!
 
-[MapPasscodeBruteForce.cs](https://github.com/MihaZupan/TelegramDesktopLocalStorage/blob/master/src/TelegramLocalStorage/MapPasscodeBruteForce.cs) coitains a sample implementation for brute forcing a passcode by eliminating as much excess code as possible
+A gpu based cracker is now available in [John the Ripper](https://github.com/magnumripper/JohnTheRipper) thanks to [@kholia](https://github.com/kholia)
 
-Some estimates:
-* Ryzen 1700	@ 3,7 GHz - 450 tries/s
+The hash string can be generated using the 'GenerateJohnTheRipperHashString' method in PasscodeBruteForce.cs
 
-
-A gpu based cracker is [in the works](https://github.com/magnumripper/JohnTheRipper/issues/3280) thanks to [@kholia](https://github.com/kholia)
-
-Initial post on Hashcat forums: [here](https://hashcat.net/forum/thread-7598.html)
+For testing you can also generate hash strings using 'GenerateTestJohnTheRipperHashString'
