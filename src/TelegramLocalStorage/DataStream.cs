@@ -11,28 +11,26 @@ namespace MihaZupan.TelegramLocalStorage
     /// </summary>
     internal class DataStream
     {
-        private byte[] _data;
-        private int _offset = 0;
-
         public DataStream(byte[] bytes)
         {
-            _data = bytes;
+            Data = bytes;
         }
 
-        public byte[] Data => _data;
-        public int Position => _offset;
-        public bool AtEnd => _data.Length <= _offset;
+        public byte[] Data { get; }
+        public int Position { get; private set; } = 0;
+
+        public bool AtEnd => Data.Length <= Position;
 
         private void EnsureSpace(int length)
         {
-            if (_offset + length > _data.Length)
+            if (Position + length > Data.Length)
                 throw new ArgumentException("No more data");
         }
 
         public void SeekForward(int count)
         {
             EnsureSpace(count);
-            _offset += count;
+            Position += count;
         }
         
         public byte[] ReadRawData(int length)
@@ -40,8 +38,8 @@ namespace MihaZupan.TelegramLocalStorage
             EnsureSpace(length);
             if (length <= 0) return new byte[0];
             byte[] data = new byte[length];
-            Array.Copy(_data, _offset, data, 0, length);
-            _offset += length;
+            Array.Copy(Data, Position, data, 0, length);
+            Position += length;
             return data;
         }
         public byte[] ReadShortRawDataReversed(int length)
@@ -51,9 +49,9 @@ namespace MihaZupan.TelegramLocalStorage
             byte[] data = new byte[length];
             for (int i = 0; i < length; i++)
             {
-                data[i] = _data[_offset + length - i - 1];
+                data[i] = Data[Position + length - i - 1];
             }
-            _offset += length;
+            Position += length;
             return data;
         }
         public byte[] ReadByteArray()
@@ -67,8 +65,8 @@ namespace MihaZupan.TelegramLocalStorage
         {
             int len = (int)ReadUInt32();
             if (len <= 0) return "";
-            string str = Encoding.ASCII.GetString(_data, _offset, len);
-            _offset += len;
+            string str = Encoding.ASCII.GetString(Data, Position, len);
+            Position += len;
             return str;
         }
 

@@ -17,6 +17,6 @@
         public static implicit operator FileKey(ulong key)
             => new FileKey(key);
         public static implicit operator ulong(FileKey key)
-                    => key.Key;
+            => key.Key;
     }
 }
