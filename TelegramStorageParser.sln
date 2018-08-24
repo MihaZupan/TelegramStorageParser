@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2043
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelegramStorageParser", "src\TelegramStorageParser\TelegramStorageParser.csproj", "{AA512E47-7C80-4DC8-B5FE-A1FB4543C6EA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelegramDesktopExample", "examples\TelegramDesktopExample\TelegramDesktopExample.csproj", "{E5B8AE58-2E3D-4417-9429-74CB24F964A3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{69366B5E-8A3A-4174-83DD-B8E06657D050}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E8EF13A9-5307-405B-BF1D-C81F94EFCC32}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2E4D28DD-7E56-4293-B906-A464826A5E3B}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AA512E47-7C80-4DC8-B5FE-A1FB4543C6EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA512E47-7C80-4DC8-B5FE-A1FB4543C6EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA512E47-7C80-4DC8-B5FE-A1FB4543C6EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA512E47-7C80-4DC8-B5FE-A1FB4543C6EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5B8AE58-2E3D-4417-9429-74CB24F964A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5B8AE58-2E3D-4417-9429-74CB24F964A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5B8AE58-2E3D-4417-9429-74CB24F964A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5B8AE58-2E3D-4417-9429-74CB24F964A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AA512E47-7C80-4DC8-B5FE-A1FB4543C6EA} = {69366B5E-8A3A-4174-83DD-B8E06657D050}
+		{E5B8AE58-2E3D-4417-9429-74CB24F964A3} = {E8EF13A9-5307-405B-BF1D-C81F94EFCC32}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AE5A4AA8-61A9-4E06-953C-71E83E580F07}
+	EndGlobalSection
+EndGlobal

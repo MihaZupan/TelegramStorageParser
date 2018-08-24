@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <RootNamespace>MihaZupan.TelegramStorageParser</RootNamespace>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>MihaZupan</Authors>
+    <LangVersion>7.1</LangVersion>
+    <Copyright>Copyright © Miha Zupan 2018</Copyright>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/MihaZupan/TelegramStorageParser/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/MihaZupan/TelegramStorageParser</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MihaZupan/TelegramStorageParser.git</RepositoryUrl>
+    <PackageTags>Telegram;Telegram-Desktop;tdesktop;decryption</PackageTags>
+    <Description>Library to decrypt and parse Telegram Desktop's storage</Description>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  
+</Project>
