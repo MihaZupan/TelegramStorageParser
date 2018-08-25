@@ -19,17 +19,21 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop.Types
         {
             Id = id;
             Secret = secret;
-            if (BareDcId < 1 || BareDcId > 5) throw new ArgumentException(nameof(id));
-            Endpoints = BuildInDcs[BareDcId - 1];
-            PublicKey = BuildInPublicKeys[BareDcId - 1];
+            if (BareDcId > 0 && BareDcId < 5)
+            {
+                Endpoints = BuildInDcs[BareDcId - 1];
+                PublicKey = BuildInPublicKeys[BareDcId - 1];
+            }
         }
         internal DataCenter(int id, string address, int port, byte[] secret)
         {
             Id = id;
             Secret = secret;
             Endpoints = new[] { new Endpoint(address, port) };
-            if (BareDcId < 1 || BareDcId > 5) throw new ArgumentException(nameof(id));
-            PublicKey = BuildInPublicKeys[BareDcId - 1];
+            if (BareDcId > 0 && BareDcId < 5)
+            {
+                PublicKey = BuildInPublicKeys[BareDcId - 1];
+            }
         }
 
         private static readonly Endpoint[][] BuildInDcs =

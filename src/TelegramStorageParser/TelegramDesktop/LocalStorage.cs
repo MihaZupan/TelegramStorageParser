@@ -212,6 +212,7 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
         }
         internal void TryDeserialize_MtpAuthorization(byte[] serialized)
         {
+            if (serialized.Length < 12) return;
             DataStream stream = new DataStream(serialized);
 
             AuthInfo.UserId = stream.ReadInt32();
@@ -229,6 +230,7 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
         }
         internal void TryDeserialize_DcOptions(byte[] serialized)
         {
+            if (serialized.Length < 12) return;
             DataStream stream = new DataStream(serialized);
 
             int minusVersion = stream.ReadInt32();

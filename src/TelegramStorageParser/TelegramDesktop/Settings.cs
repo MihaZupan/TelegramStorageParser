@@ -56,7 +56,7 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
         }
 
         private static bool TryReadSetting(DataBlockID blockId, DataStream stream, LocalStorage storage)
-        {            
+        {
             switch (blockId)
             {
                 case DataBlockID.dbiDcOptions:
