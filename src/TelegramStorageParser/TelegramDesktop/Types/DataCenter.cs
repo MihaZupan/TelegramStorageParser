@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MihaZupan.TelegramStorageParser.TelegramDesktop.Types
+﻿namespace MihaZupan.TelegramStorageParser.TelegramDesktop.Types
 {
     public class DataCenter
     {
@@ -21,8 +19,8 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop.Types
             Secret = secret;
             if (BareDcId > 0 && BareDcId < 5)
             {
-                Endpoints = BuildInDcs[BareDcId - 1];
-                PublicKey = BuildInPublicKeys[BareDcId - 1];
+                Endpoints = BuiltInDcs[BareDcId - 1];
+                PublicKey = BuiltInPublicKeys[BareDcId - 1];
             }
         }
         internal DataCenter(int id, string address, int port, byte[] secret)
@@ -32,11 +30,11 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop.Types
             Endpoints = new[] { new Endpoint(address, port) };
             if (BareDcId > 0 && BareDcId < 5)
             {
-                PublicKey = BuildInPublicKeys[BareDcId - 1];
+                PublicKey = BuiltInPublicKeys[BareDcId - 1];
             }
         }
 
-        private static readonly Endpoint[][] BuildInDcs =
+        private static readonly Endpoint[][] BuiltInDcs =
         {
             new[] { new Endpoint("149.154.175.50",  443), new Endpoint("2001:0b28:f23d:f001:0000:0000:0000:000a", 443) },
             new[] { new Endpoint("149.154.167.51",  443), new Endpoint("2001:067c:04e8:f002:0000:0000:0000:000a", 443) },
@@ -44,7 +42,7 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop.Types
             new[] { new Endpoint("149.154.167.91",  443), new Endpoint("2001:067c:04e8:f004:0000:0000:0000:000a", 443) },
             new[] { new Endpoint("149.154.171.5",   443), new Endpoint("2001:0b28:f23f:f005:0000:0000:0000:000a", 443) }
         };
-        private static readonly string[] BuildInPublicKeys =
+        private static readonly string[] BuiltInPublicKeys =
         {
             @"-----BEGIN RSA PUBLIC KEY-----
 MIIBCgKCAQEAwVACPi9w23mF3tBkdZz+zwrzKOaaQdr01vAbU4E1pvkfj4sqDsm6
