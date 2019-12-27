@@ -9,6 +9,7 @@
         HttpAuto = 1,
         HttpProxy = 2,
         TcpProxy = 3,
-        ProxiesList = 4,
+        ProxiesListOld = 4,
+        ProxiesList = 5,
     }
 }

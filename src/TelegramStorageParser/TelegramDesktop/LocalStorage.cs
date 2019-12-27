@@ -418,6 +418,10 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
             DataStream stream = file.DataStream;
 
         }
+        internal void TryParse_SelfSerialized(byte[] array)
+        { 
+            
+        }
         internal void TryParse_ThemeLegacy(FileKey fileKey)
         {
             if (_minimizeFileIo) return;

@@ -115,13 +115,13 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     storage.SoundNotify = stream.ReadBool();
                     return true;
 
-                case DataBlockID.dbiAutoDownload:
+                case DataBlockID.dbiAutoDownloadOld:
                     storage.AutoDownloadPhoto = stream.ReadBool();
                     storage.AutoDownloadAudio = stream.ReadBool();
                     storage.AutoDownloadGif = stream.ReadBool();
                     return true;
 
-                case DataBlockID.dbiAutoPlay:
+                case DataBlockID.dbiAutoPlayOld:
                     storage.AutoPlayGif = stream.ReadBool();
                     return true;
 
@@ -135,7 +135,7 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     storage.ModerateModeEnabled = stream.ReadBool();
                     return true;
 
-                case DataBlockID.dbiIncludeMuted:
+                case DataBlockID.dbiIncludeMutedOld:
                     storage.IncludeMuted = stream.ReadBool();
                     return true;
 
@@ -165,7 +165,7 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     storage.LastSeenWarningSeen = stream.ReadBool();
                     return true;
 
-                case DataBlockID.dbiAuthSessionSettings:
+                case DataBlockID.dbiSessionSettings:
                     storage.TryDeserialize_AuthSessionSettings(stream.ReadByteArray());
                     return true;
 
@@ -175,6 +175,10 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
 
                 case DataBlockID.dbiTxtDomainString:
                     storage.TxtDomainString = stream.ReadString();
+                    return true;
+
+                case DataBlockID.dbiTxtDomainStringOld:
+                    stream.ReadString();
                     return true;
 
                 case DataBlockID.dbiConnectionTypeOld:
@@ -190,7 +194,7 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
 
                 case DataBlockID.dbiConnectionType:
                     ConnectionType connectionType = (ConnectionType)stream.ReadInt32();
-                    if (connectionType == ConnectionType.ProxiesList)
+                    if (connectionType == ConnectionType.ProxiesListOld || connectionType == ConnectionType.ProxiesList)
                     {
                         int proxyCount = stream.ReadInt32();
                         int proxyIndex = stream.ReadInt32();
@@ -269,7 +273,7 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     storage.LoggedPhoneNumber = stream.ReadString().Replace(" ", "");
                     return true;
 
-                case DataBlockID.dbiSendKey:
+                case DataBlockID.dbiSendKeyOld:
                     storage.SendKey = (SendKey)stream.ReadInt32();
                     return true;
 
@@ -286,15 +290,15 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     storage.AutoLockSeconds = stream.ReadInt32();
                     return true;
 
-                case DataBlockID.dbiReplaceEmoji:
+                case DataBlockID.dbiReplaceEmojiOld:
                     storage.ReplaceEmoji = stream.ReadBool();
                     return true;
 
-                case DataBlockID.dbiSuggestEmoji:
+                case DataBlockID.dbiSuggestEmojiOld:
                     storage.SuggestEmoji = stream.ReadBool();
                     return true;
 
-                case DataBlockID.dbiSuggestStickersByEmoji:
+                case DataBlockID.dbiSuggestStickersByEmojiOld:
                     storage.SuggestStickersByEmoji = stream.ReadBool();
                     return true;
 
@@ -338,10 +342,10 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     storage.VideoVolume = (stream.ReadInt32() / 1e6f).Snap(0f, 1f);
                     return true;
 
-
                 // Discard - either discarded by the client or just not useful for anything
 
-                case DataBlockID.dbiScale:
+                case DataBlockID.dbiScaleOld:
+                case DataBlockID.dbiScalePercent:
                 case DataBlockID.dbiEmojiTabOld:
                 case DataBlockID.dbiDefaultAttach:
                 case DataBlockID.dbiShowingSavedGifsOld:
@@ -401,6 +405,39 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     stream.SeekForward(8);
                     stream.SeekForwardString();
                     stream.SeekForward(4);
+                    return true;
+
+                case DataBlockID.dbiCacheSettingsOld:
+                    stream.SeekForward(8); //size
+                    stream.SeekForward(4); //time
+                    return true;
+
+                case DataBlockID.dbiCacheSettings:
+                    stream.SeekForward(8); //size
+                    stream.SeekForward(4); //time
+                    stream.SeekForward(8); //sizeBig
+                    stream.SeekForward(4); //timeBig
+                    return true;
+
+                case DataBlockID.dbiLanguagesKey:
+                    stream.SeekForward(8); //languagesKey
+                    return true;
+
+                case DataBlockID.dbiPlaybackSpeed:
+                    stream.SeekForward(4); //v
+                    return true;
+
+                case DataBlockID.dbiCallSettings:
+                    stream.ReadByteArray(); //callSettings
+                    return true;
+
+
+                case DataBlockID.dbiApplicationSettings:
+                    stream.ReadByteArray(); //serialized
+                    return true;
+
+                case DataBlockID.dbiAnimationsDisabled:
+                    stream.SeekForward(4); //disabled
                     return true;
 
 
