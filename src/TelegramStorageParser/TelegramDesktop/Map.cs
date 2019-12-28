@@ -55,19 +55,23 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     storage._draftsMap = stream.ReadDraftsMap();
                     return true;
 
+                case LocalStorageKey.lskSelfSerialized:
+                    storage.TryParse_SelfSerialized(stream.ReadByteArray());
+                    return true;
+
                 case LocalStorageKey.lskDraftPosition:
                     storage._draftCursorsMap = stream.ReadDraftsMap();
                     return true;
 
-                case LocalStorageKey.lskImages:
+                case LocalStorageKey.lskLegacyImages:
                     storage._imagesMap = stream.ReadStorageMap();
                     return true;
 
-                case LocalStorageKey.lskStickerImages:
+                case LocalStorageKey.lskLegacyStickerImages:
                     storage._stickersMap = stream.ReadStorageMap();
                     return true;
 
-                case LocalStorageKey.lskAudios:
+                case LocalStorageKey.lskLegacyAudios:
                     storage._audiosMap = stream.ReadStorageMap();
                     return true;
 
@@ -75,7 +79,7 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     storage.TryParse_Locations(stream.ReadUInt64());
                     return true;
 
-                case LocalStorageKey.lskReportSpamStatuses:
+                case LocalStorageKey.lskReportSpamStatusesOld:
                     storage.TryParse_ReportSpamStatuses(stream.ReadUInt64());
                     return true;
 
@@ -127,14 +131,13 @@ namespace MihaZupan.TelegramStorageParser.TelegramDesktop
                     storage.TryParse_SavedGifs(stream.ReadUInt64());
                     return true;
 
-                case LocalStorageKey.lskSavedPeers:
+                case LocalStorageKey.lskSavedPeersOld:
                     storage.TryParse_SavedPeers(stream.ReadUInt64());
                     return true;
 
                 case LocalStorageKey.lskExportSettings:
                     storage.TryParse_ExportSettings(stream.ReadUInt64());
                     return true;
-
 
                 default:
                     return false;
